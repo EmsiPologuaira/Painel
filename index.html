@@ -1523,14 +1523,7 @@ async function iniciarApp(user){
     try{atualizarCausas();}catch(e){}
     try{iniciarRealtime();}catch(e){}
     try{iniciarChat();}catch(e){}
-    try{
-      // Mostrar 1 imediatamente (o próprio usuário)
-      const elN=document.getElementById('num-conectados');
-      if(elN)elN.textContent='1';
-      const elC=document.getElementById('chat-online-count');
-      if(elC)elC.textContent='1';
-      await iniciarPresenca();
-    }catch(e){}
+    try{await iniciarPresenca();}catch(e){}
     try{monitorarConexao();}catch(e){}
     try{monitorarVelocidade();}catch(e){}
     try{iniciarAutoAtualizar();}catch(e){}
@@ -2877,7 +2870,6 @@ function pdfEducacao(){
 
 // ===================== CHAT EQUIPE =====================
 let chatCanal=null;
-let _presencaCanal=null;
 
 // Carregar histórico das últimas 24h do Supabase
 async function carregarHistoricoChat(){
@@ -2975,68 +2967,64 @@ function monitorarConexao(){
 }
 
 // ===================== PRESENÇA — PROFISSIONAIS CONECTADOS =====================
-function _atualizarBadgeConectados(state){
-  try{
-    const lista=Object.values(state||{}).flat().filter(Boolean);
-    const count=lista.length;
-    const elN=document.getElementById('num-conectados');
-    if(elN)elN.textContent=count;
-    const elC=document.getElementById('chat-online-count');
-    if(elC)elC.textContent=count;
-    const badge=document.getElementById('badge-conectados');
-    if(badge)badge.title='Online: '+lista.map(u=>u.nome||'Profissional').join(', ');
-  }catch(e){}
-}
+// ===================== PRESENÇA VIA TABELA (100% Free) =====================
+// Atualiza tabela online_emsi a cada 20s — quem não atualizou em 1min = saiu
 
 async function iniciarPresenca(){
   try{
     const nome=perfilAtual?.nome||usuarioAtual?.email||'Profissional';
     const cargo=perfilAtual?.tipo||'profissional';
-    const chave=String(usuarioAtual.id);
+    const uid=usuarioAtual.id;
 
-    if(_presencaCanal){
-      try{await sb.removeChannel(_presencaCanal);}catch(e){}
-      _presencaCanal=null;
-    }
+    // Registrar entrada
+    await _registrarOnline(uid,nome,cargo);
 
-    // Canal público simples — sem private, sem token
-    _presencaCanal=sb.channel('presenca-emsi',{
-      config:{
-        presence:{key:chave}
-      }
+    // Atualizar a cada 20s (heartbeat)
+    setInterval(async()=>{
+      try{await _registrarOnline(uid,nome,cargo);}catch(e){}
+    },20000);
+
+    // Ler quem está online a cada 10s
+    await _lerOnline();
+    setInterval(async()=>{
+      try{await _lerOnline();}catch(e){}
+    },10000);
+
+    // Remover ao sair
+    window.addEventListener('beforeunload',()=>{
+      navigator.sendBeacon&&navigator.sendBeacon(
+        SB_URL+'/rest/v1/online_emsi?user_id=eq.'+uid,
+        JSON.stringify({})
+      );
+      sb.from('online_emsi').delete().eq('user_id',uid).then(()=>{});
     });
-
-    _presencaCanal
-      .on('presence',{event:'sync'},()=>{
-        const state=_presencaCanal.presenceState();
-        _atualizarBadgeConectados(state);
-      })
-      .on('presence',{event:'join'},({key,newPresences})=>{
-        const state=_presencaCanal.presenceState();
-        _atualizarBadgeConectados(state);
-        if(key!==chave){
-          const p=(newPresences||[])[0]||{};
-          mostrarNotif('🟢 '+(p.nome||'Profissional')+' entrou');
-        }
-      })
-      .on('presence',{event:'leave'},({key,leftPresences})=>{
-        const state=_presencaCanal.presenceState();
-        _atualizarBadgeConectados(state);
-        if(key!==chave){
-          const p=(leftPresences||[])[0]||{};
-          mostrarNotif('🔴 '+(p.nome||'Profissional')+' saiu');
-        }
-      })
-      .subscribe(async(status)=>{
-        if(status==='SUBSCRIBED'){
-          await _presencaCanal.track({nome,cargo,online_at:new Date().toISOString()});
-          // Sync forçado após track
-          setTimeout(()=>{
-            try{_atualizarBadgeConectados(_presencaCanal.presenceState());}catch(e){}
-          },600);
-        }
-      });
   }catch(e){console.warn('Presença error:',e);}
+}
+
+async function _registrarOnline(uid,nome,cargo){
+  await sb.from('online_emsi').upsert({
+    user_id:uid,
+    nome,
+    cargo,
+    ultimo_ping:new Date().toISOString()
+  },{onConflict:'user_id'});
+}
+
+async function _lerOnline(){
+  try{
+    // Considerar online quem pingou nos últimos 60s
+    const limite=new Date(Date.now()-60000).toISOString();
+    const {data}=await sb.from('online_emsi').select('*').gte('ultimo_ping',limite);
+    const usuarios=data||[];
+    const count=usuarios.length;
+
+    const elN=document.getElementById('num-conectados');
+    if(elN)elN.textContent=count;
+    const elC=document.getElementById('chat-online-count');
+    if(elC)elC.textContent=count;
+    const badge=document.getElementById('badge-conectados');
+    if(badge)badge.title='Online: '+usuarios.map(u=>u.nome||'Profissional').join(', ');
+  }catch(e){}
 }
 
 
