@@ -1523,7 +1523,14 @@ async function iniciarApp(user){
     try{atualizarCausas();}catch(e){}
     try{iniciarRealtime();}catch(e){}
     try{iniciarChat();}catch(e){}
-    try{iniciarPresenca();}catch(e){}
+    try{
+      // Mostrar 1 imediatamente (o próprio usuário)
+      const elN=document.getElementById('num-conectados');
+      if(elN)elN.textContent='1';
+      const elC=document.getElementById('chat-online-count');
+      if(elC)elC.textContent='1';
+      await iniciarPresenca();
+    }catch(e){}
     try{monitorarConexao();}catch(e){}
     try{monitorarVelocidade();}catch(e){}
     try{iniciarAutoAtualizar();}catch(e){}
@@ -2970,31 +2977,33 @@ function monitorarConexao(){
 // ===================== PRESENÇA — PROFISSIONAIS CONECTADOS =====================
 function _atualizarBadgeConectados(state){
   try{
-    const usuarios=Object.values(state||{}).flat().filter(Boolean);
-    const count=usuarios.length;
+    const lista=Object.values(state||{}).flat().filter(Boolean);
+    const count=lista.length;
     const elN=document.getElementById('num-conectados');
     if(elN)elN.textContent=count;
     const elC=document.getElementById('chat-online-count');
     if(elC)elC.textContent=count;
     const badge=document.getElementById('badge-conectados');
-    if(badge){
-      const nomes=usuarios.map(u=>u.nome||u.email||'Profissional').join(', ');
-      badge.title='Online: '+nomes;
-    }
+    if(badge)badge.title='Online: '+lista.map(u=>u.nome||'Profissional').join(', ');
   }catch(e){}
 }
 
-function iniciarPresenca(){
+async function iniciarPresenca(){
   try{
     const nome=perfilAtual?.nome||usuarioAtual?.email||'Profissional';
     const cargo=perfilAtual?.tipo||'profissional';
     const chave=String(usuarioAtual.id);
 
-    // Remover canal anterior se existir
-    if(_presencaCanal){try{sb.removeChannel(_presencaCanal);}catch(e){}}
+    if(_presencaCanal){
+      try{await sb.removeChannel(_presencaCanal);}catch(e){}
+      _presencaCanal=null;
+    }
 
-    _presencaCanal=sb.channel('emsi-presenca-v3',{
-      config:{presence:{key:chave}}
+    // Canal público simples — sem private, sem token
+    _presencaCanal=sb.channel('presenca-emsi',{
+      config:{
+        presence:{key:chave}
+      }
     });
 
     _presencaCanal
@@ -3020,16 +3029,11 @@ function iniciarPresenca(){
       })
       .subscribe(async(status)=>{
         if(status==='SUBSCRIBED'){
-          try{
-            await _presencaCanal.track({nome,cargo,online_at:new Date().toISOString()});
-            // Forçar sync após track
-            setTimeout(()=>{
-              try{
-                const state=_presencaCanal.presenceState();
-                _atualizarBadgeConectados(state);
-              }catch(e){}
-            },500);
-          }catch(e){console.warn('track error:',e);}
+          await _presencaCanal.track({nome,cargo,online_at:new Date().toISOString()});
+          // Sync forçado após track
+          setTimeout(()=>{
+            try{_atualizarBadgeConectados(_presencaCanal.presenceState());}catch(e){}
+          },600);
         }
       });
   }catch(e){console.warn('Presença error:',e);}
