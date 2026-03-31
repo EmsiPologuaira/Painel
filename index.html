@@ -2,7 +2,15 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d2040">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EMSI Guaíra">
+<meta name="description" content="Painel EMSI — Equipe Multidisciplinar de Saúde Indígena · Polo Base Guaíra · DSEI Litoral Sul">
+<link rel="manifest" id="pwa-manifest">
+<link rel="apple-touch-icon" id="pwa-icon-apple">
 <title>PAINEL EMSI — POLO BASE GUAÍRA</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -3062,6 +3070,127 @@ function iniciarLembreteOlhos(){
       setTimeout(()=>{if(d.parentNode)d.remove();},8000);
     }
   },60000);
+}
+</script>
+
+<script>
+// ===================== PWA — INSTALAÇÃO COMO APP =====================
+
+// Gerar ícone SVG como base64
+const iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#0d2040"/>
+  <rect x="40" y="40" width="432" height="432" rx="60" fill="#1a3a6b"/>
+  <text x="256" y="200" font-family="Arial" font-size="160" text-anchor="middle" fill="white">🏥</text>
+  <text x="256" y="310" font-family="Arial Black,Arial" font-size="58" font-weight="900" text-anchor="middle" fill="#f5c842">EMSI</text>
+  <text x="256" y="370" font-family="Arial" font-size="34" text-anchor="middle" fill="rgba(255,255,255,0.7)">Polo Base Guaíra</text>
+</svg>`;
+
+const iconURL = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(iconSVG)));
+
+// Configurar apple-touch-icon
+const appleIcon = document.getElementById('pwa-icon-apple');
+if(appleIcon) appleIcon.href = iconURL;
+
+// Criar manifest dinamicamente
+const manifest = {
+  name: "PAINEL EMSI — Polo Base Guaíra",
+  short_name: "EMSI Guaíra",
+  description: "Painel da Equipe Multidisciplinar de Saúde Indígena · DSEI Litoral Sul · SESAI/MS",
+  start_url: "./",
+  display: "standalone",
+  orientation: "portrait-primary",
+  background_color: "#0d2040",
+  theme_color: "#0d2040",
+  lang: "pt-BR",
+  icons: [
+    { src: iconURL, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
+    { src: iconURL, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+  ],
+  categories: ["health", "medical", "productivity"]
+};
+
+const manifestBlob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+const manifestURL = URL.createObjectURL(manifestBlob);
+const manifestLink = document.getElementById('pwa-manifest');
+if(manifestLink) manifestLink.href = manifestURL;
+
+// Service Worker — cache offline básico
+if('serviceWorker' in navigator){
+  const swCode = `
+    const CACHE = 'emsi-v1';
+    const URLS = ['./', './index.html'];
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(URLS)).catch(()=>{}));
+      self.skipWaiting();
+    });
+    self.addEventListener('activate', e => {
+      e.waitUntil(caches.keys().then(keys =>
+        Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))
+      ));
+      self.clients.claim();
+    });
+    self.addEventListener('fetch', e => {
+      if(e.request.method !== 'GET') return;
+      e.respondWith(
+        fetch(e.request).catch(() => caches.match(e.request))
+      );
+    });
+  `;
+  const swBlob = new Blob([swCode], {type:'application/javascript'});
+  const swURL = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swURL).catch(()=>{});
+}
+
+// Banner de instalação
+let _deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _deferredPrompt = e;
+  // Mostrar botão de instalar após login
+  setTimeout(mostrarBannerInstalar, 3000);
+});
+
+function mostrarBannerInstalar(){
+  if(!_deferredPrompt) return;
+  if(document.getElementById('banner-instalar')) return;
+  if(document.getElementById('login-screen').style.display !== 'none' &&
+     document.getElementById('app-screen').style.display === 'none') return;
+
+  const banner = document.createElement('div');
+  banner.id = 'banner-instalar';
+  banner.style.cssText = 'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#0d2040;color:white;border-radius:14px;padding:12px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:9999;font-family:Sora,sans-serif;min-width:280px;max-width:360px;border:1px solid rgba(245,200,66,.3)';
+  banner.innerHTML = `
+    <div style="font-size:1.8rem">📲</div>
+    <div style="flex:1">
+      <div style="font-size:.82rem;font-weight:800;color:#f5c842">Instalar como App</div>
+      <div style="font-size:.68rem;opacity:.75;margin-top:2px">Adicionar EMSI na tela inicial do celular</div>
+    </div>
+    <button onclick="instalarPWA()" style="background:#f5c842;color:#0d2040;border:none;border-radius:8px;padding:7px 13px;font-family:Sora,sans-serif;font-weight:800;font-size:.75rem;cursor:pointer;white-space:nowrap">Instalar</button>
+    <button onclick="document.getElementById('banner-instalar').remove()" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:1.1rem;cursor:pointer;padding:2px 4px">✕</button>
+  `;
+  document.body.appendChild(banner);
+  setTimeout(()=>{ if(banner.parentNode) banner.remove(); }, 15000);
+}
+
+async function instalarPWA(){
+  if(!_deferredPrompt) return;
+  _deferredPrompt.prompt();
+  const {outcome} = await _deferredPrompt.userChoice;
+  _deferredPrompt = null;
+  const banner = document.getElementById('banner-instalar');
+  if(banner) banner.remove();
+  if(outcome === 'accepted') mostrarNotif('✅ App instalado com sucesso!');
+}
+
+// iOS — instrução manual (Safari não suporta beforeinstallprompt)
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isStandalone = window.navigator.standalone;
+if(isIOS && !isStandalone){
+  setTimeout(()=>{
+    if(document.getElementById('app-screen')?.style.display === 'block'){
+      mostrarNotif('📲 Para instalar: toque em <strong>Compartilhar → Adicionar à Tela de Início</strong>');
+    }
+  }, 4000);
 }
 </script>
 </body>
