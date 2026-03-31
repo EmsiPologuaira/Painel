@@ -1,0 +1,2998 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAINEL EMSI — POLO BASE GUAÍRA</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--azul:#1a3a6b;--azul-claro:#1a5ba0;--azul-escuro:#0d2040;--verde:#1a6b3a;--verde-claro:#27a354;--amarelo:#f5c842;--laranja:#e07b39;--vermelho:#c0392b;--rosa:#be185d;--roxo:#7c3aed;--teal:#0d9488;--bg:#f0f4f8;--cinza:#6b7280;--cinza-claro:#e2e8f0;--texto:#1a2035;--sombra:0 4px 20px rgba(26,58,107,.12);--radius:14px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--texto);min-height:100vh}
+/* LOGIN */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:linear-gradient(135deg,#0d2040,#1a3a6b,#1a5ba0)}
+.login-card{background:white;border-radius:24px;box-shadow:0 12px 60px rgba(0,0,0,.3);padding:40px 36px;width:100%;max-width:420px}
+.login-logo{text-align:center;margin-bottom:24px}
+.login-logo .icon{font-size:48px;display:block;margin-bottom:8px}
+.login-logo h1{font-size:1.3rem;font-weight:800;color:var(--azul-escuro)}
+.login-logo p{font-size:.76rem;color:var(--cinza);margin-top:4px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:.72rem;font-weight:700;color:var(--cinza);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.form-group input{width:100%;border:1.5px solid var(--cinza-claro);border-radius:10px;padding:11px 13px;font-family:'Sora',sans-serif;font-size:.88rem;outline:none;background:var(--bg)}
+.form-group input:focus{border-color:var(--azul);background:white}
+.btn-login{width:100%;background:linear-gradient(135deg,var(--azul-escuro),var(--azul-claro));color:white;border:none;border-radius:10px;padding:13px;font-family:'Sora',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:6px}
+.btn-login:hover{opacity:.9}
+.login-erro{background:#fff5f5;border:1.5px solid var(--vermelho);border-radius:8px;padding:9px 13px;font-size:.8rem;color:var(--vermelho);margin-top:10px;display:none}
+/* HEADER */
+#app-screen{display:none}
+.header{background:linear-gradient(135deg,var(--azul-escuro),var(--azul-claro),#2563ab);color:white;padding:13px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.header-logo{font-size:28px}
+.header-info{flex:1}
+.header-info h1{font-size:clamp(.8rem,1.8vw,1.2rem);font-weight:800;line-height:1.2}
+.header-info p{font-size:.68rem;opacity:.7;margin-top:1px}
+.header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.header-user-card{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:5px 12px 5px 5px}
+.header-foto{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:14px;overflow:hidden;flex-shrink:0}
+.header-foto img{width:100%;height:100%;object-fit:cover}
+.header-user-nome{font-size:.72rem;font-weight:700}
+.header-clock{font-size:.6rem;font-family:'IBM Plex Mono',monospace;opacity:.5}
+.btn-logout{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:white;border-radius:7px;padding:5px 11px;font-family:'Sora',sans-serif;font-size:.7rem;font-weight:600;cursor:pointer}
+/* REALTIME BADGE */
+.realtime-badge{display:flex;align-items:center;gap:5px;background:rgba(39,163,84,.2);border:1px solid rgba(39,163,84,.4);border-radius:12px;padding:3px 10px;font-size:.6rem;font-weight:700;color:#6ee7b7}
+.realtime-dot{width:7px;height:7px;border-radius:50%;background:#27a354;animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+/* TABS */
+.tabs-wrap{background:var(--azul-escuro);padding:0 16px;display:flex;gap:1px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:thin}
+.tab-btn{background:none;border:none;color:rgba(255,255,255,.4);font-family:'Sora',sans-serif;font-size:.68rem;font-weight:600;padding:9px 11px;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:.2s}
+.tab-btn:hover{color:rgba(255,255,255,.8)}
+.tab-btn.active{color:var(--amarelo);border-bottom-color:var(--amarelo)}
+/* MAIN */
+.main{padding:16px 20px;max-width:1400px;margin:0 auto}
+.periodo-bar{background:white;border-radius:var(--radius);padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:var(--sombra);margin-bottom:12px}
+.periodo-bar label{font-size:.7rem;font-weight:700;color:var(--azul-escuro)}
+.periodo-bar select{border:1.5px solid var(--cinza-claro);border-radius:7px;padding:5px 9px;font-family:'Sora',sans-serif;font-size:.78rem;outline:none;background:var(--bg)}
+.btn-carregar{background:var(--azul-claro);color:white;border:none;border-radius:7px;padding:6px 13px;font-family:'Sora',sans-serif;font-weight:700;font-size:.74rem;cursor:pointer}
+/* CARDS */
+.card{background:white;border-radius:var(--radius);box-shadow:var(--sombra);overflow:hidden;margin-bottom:13px}
+.card-header{color:white;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.card-header h2{font-size:.92rem;font-weight:800}
+.card-header p{font-size:.7rem;opacity:.75;margin-top:1px}
+.card-body{padding:15px}
+.grid-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:10px}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:.62rem;color:var(--cinza);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.field input,.field select,.field textarea{border:1.5px solid var(--cinza-claro);border-radius:7px;padding:7px 9px;font-family:'Sora',sans-serif;font-size:.82rem;outline:none;background:var(--bg);transition:.2s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--azul);background:white}
+.field input.rosa{border-color:#fbcfe8;background:#fdf2f8}
+.field input.verde{border-color:#6ee7b7;background:#ecfdf5}
+.field input.roxo,.field input.roxo{border-color:#c4b5fd;background:#f5f3ff}
+.field input.azul{border-color:#93c5fd;background:#eff6ff}
+.field input.alerta,.field select.alerta{border-color:#fca5a5;background:#fff5f5}
+.field input.amarelo{border-color:#fde047;background:#fefce8}
+.field input.laranja{border-color:#fed7aa;background:#fff7ed}
+.field input.cinza-esc{border-color:#9ca3af;background:#f9fafb}
+/* BUTTONS */
+.btn{border:none;border-radius:8px;padding:9px 20px;font-family:'Sora',sans-serif;font-weight:700;font-size:.8rem;cursor:pointer;transition:.2s}
+.btn-primary{background:var(--azul-claro);color:white}
+.btn-primary:hover{opacity:.9}
+.btn-success{background:var(--verde);color:white}
+.btn-success:hover{opacity:.9}
+.btn-danger{background:var(--vermelho);color:white}
+.btn-warning{background:var(--amarelo);color:var(--azul-escuro)}
+.btn-sm{padding:5px 11px;font-size:.72rem}
+.btn-pdf{background:#c0392b;color:white;border:none;border-radius:7px;padding:5px 12px;font-family:'Sora',sans-serif;font-weight:700;font-size:.7rem;cursor:pointer}
+.msg{font-weight:700;font-size:.78rem;margin-top:7px;display:none}
+.msg.ok{color:var(--verde)}
+.msg.err{color:var(--vermelho)}
+/* STATS */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:8px;margin-bottom:16px}
+.stat{background:white;border-radius:var(--radius);padding:12px;box-shadow:var(--sombra);text-align:center;border-top:4px solid var(--azul-claro);transition:.2s}
+.stat:hover{transform:translateY(-2px)}
+.stat.alerta{border-top-color:var(--vermelho)}
+.stat.aviso{border-top-color:var(--laranja)}
+.stat.rosa{border-top-color:var(--rosa)}
+.stat.verde{border-top-color:var(--verde)}
+.stat.roxo{border-top-color:var(--roxo)}
+.stat.amarelo{border-top-color:#ca8a04}
+.stat.cinza-esc{border-top-color:#374151}
+.stat.teal{border-top-color:var(--teal)}
+.stat-n{font-size:1.5rem;font-weight:800;color:var(--azul-escuro);font-family:'IBM Plex Mono',monospace;line-height:1}
+.stat.alerta .stat-n{color:var(--vermelho)}
+.stat.aviso .stat-n{color:var(--laranja)}
+.stat.rosa .stat-n{color:var(--rosa)}
+.stat.verde .stat-n{color:var(--verde)}
+.stat.roxo .stat-n{color:var(--roxo)}
+.stat.amarelo .stat-n{color:#ca8a04}
+.stat.cinza-esc .stat-n{color:#374151}
+.stat.teal .stat-n{color:var(--teal)}
+.stat-l{font-size:.6rem;color:var(--cinza);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+/* CHARTS */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:700px){.charts-row{grid-template-columns:1fr}.grid-form{grid-template-columns:1fr 1fr}.main{padding:10px}}
+.chart-box{background:white;border-radius:var(--radius);padding:13px;box-shadow:var(--sombra)}
+.chart-box h4{font-size:.8rem;font-weight:700;color:var(--azul-escuro);margin-bottom:10px}
+/* TABLE */
+.tw{background:white;border-radius:var(--radius);box-shadow:var(--sombra);overflow:hidden;margin-bottom:12px}
+.tw-head{background:var(--azul-escuro);color:white;padding:9px 14px;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+table{width:100%;border-collapse:collapse;font-size:.7rem}
+th{background:var(--cinza-claro);padding:7px 9px;text-align:left;font-weight:700;color:var(--azul-escuro);font-size:.62rem;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+td{padding:7px 9px;border-bottom:1px solid #e8eef8;font-family:'IBM Plex Mono',monospace;font-weight:500}
+tr:hover td{background:#f0f4f8}
+td.ok{color:var(--verde);font-weight:700}
+td.alerta{color:var(--vermelho);font-weight:700}
+td.aviso{color:var(--laranja);font-weight:700}
+td.zero{color:#ccc}
+/* BADGES */
+.badge{display:inline-block;padding:2px 7px;border-radius:8px;font-size:.62rem;font-weight:700;font-family:'Sora',sans-serif}
+.badge-verde{background:#dcfce7;color:#166534}
+.badge-vermelho{background:#fee2e2;color:#991b1b}
+.badge-amarelo{background:#fef9c3;color:#713f12}
+.badge-azul{background:#dbeafe;color:#1e3a8a}
+.badge-roxo{background:#ede9fe;color:#4c1d95}
+.badge-rosa{background:#fce7f3;color:#831843}
+.badge-laranja{background:#ffedd5;color:#9a3412}
+.badge-cinza{background:#f3f4f6;color:#374151}
+.badge-preto{background:#111827;color:white}
+/* TAB CONTENT */
+.tab-content{display:none}
+.tab-content.active{display:block}
+/* INFO BOX */
+.info-box{border-radius:9px;padding:10px 13px;font-size:.74rem;margin-bottom:11px;display:flex;align-items:flex-start;gap:9px}
+.ib-azul{background:#eff6ff;border:1.5px solid #93c5fd;color:#1e3a8a}
+.ib-rosa{background:#fdf2f8;border:1.5px solid #f9a8d4;color:#831843}
+.ib-verde{background:#f0fdf4;border:1.5px solid #86efac;color:#14532d}
+.ib-amarelo{background:#fefce8;border:1.5px solid #fde047;color:#713f12}
+.ib-vermelho{background:#fff5f5;border:1.5px solid #fca5a5;color:#991b1b}
+.ib-roxo{background:#f5f3ff;border:1.5px solid #c4b5fd;color:#3730a3}
+.ib-cinza{background:#f9fafb;border:1.5px solid #9ca3af;color:#374151}
+.ib-laranja{background:#fff7ed;border:1.5px solid #fed7aa;color:#9a3412}
+/* SEPARADOR */
+.sep{background:var(--cinza-claro);border-radius:7px;padding:5px 11px;font-size:.64rem;font-weight:700;color:var(--azul-escuro);text-transform:uppercase;letter-spacing:1px;margin:10px 0 8px;display:flex;align-items:center;gap:7px}
+/* ALERT BANNER */
+.alert-banner{background:linear-gradient(135deg,#7f1d1d,#c0392b);color:white;border-radius:var(--radius);padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:14px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.85}}
+.alert-banner .alert-icon,.alert-icon{font-size:2rem;flex-shrink:0}
+.alert-banner h3{font-size:.92rem;font-weight:800}
+.alert-banner p{font-size:.74rem;opacity:.85;margin-top:2px}
+/* PACIENTE CARD */
+.pac-card{background:white;border-radius:12px;box-shadow:var(--sombra);padding:13px;border-left:4px solid var(--azul-claro);margin-bottom:10px;display:flex;align-items:center;gap:12px;transition:.2s}
+.pac-card:hover{border-left-color:var(--verde);background:#f6fbf7}
+.pac-avatar{width:40px;height:40px;border-radius:50%;background:var(--cinza-claro);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.pac-nome{font-size:.86rem;font-weight:800;color:var(--azul-escuro)}
+.pac-sub{font-size:.68rem;color:var(--cinza);margin-top:2px}
+.pac-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+/* VACINA CARDS */
+.vac-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:9px;margin-bottom:12px}
+.vac-card{background:white;border-radius:11px;box-shadow:var(--sombra);padding:12px;border-top:4px solid var(--verde)}
+.vac-card.atrasada{border-top-color:var(--vermelho);background:#fff5f5}
+.vac-card.pendente{border-top-color:var(--laranja)}
+.vac-card.aplicada{border-top-color:var(--verde)}
+.vac-nome{font-size:.8rem;font-weight:800;color:var(--azul-escuro)}
+.vac-cat{font-size:.62rem;color:var(--cinza);margin-top:1px}
+.vac-data{font-size:.72rem;font-family:'IBM Plex Mono',monospace;margin-top:5px;font-weight:700}
+.vac-card.atrasada .vac-data{color:var(--vermelho)}
+.vac-card.aplicada .vac-data{color:var(--verde)}
+/* INSUMOS */
+.ins-card{background:white;border-radius:11px;box-shadow:var(--sombra);padding:12px;border-left:4px solid var(--roxo);position:relative}
+.ins-card.alerta-ins{border-left-color:var(--vermelho)}
+.ins-card.aviso-ins{border-left-color:var(--laranja)}
+.ins-nome{font-size:.84rem;font-weight:800;color:var(--azul-escuro)}
+.ins-cat{font-size:.62rem;color:var(--cinza)}
+.ins-qtd{font-size:1.5rem;font-weight:800;font-family:'IBM Plex Mono',monospace;color:var(--roxo);line-height:1;margin:5px 0 3px}
+.ins-card.alerta-ins .ins-qtd{color:var(--vermelho)}
+.ins-card.aviso-ins .ins-qtd{color:var(--laranja)}
+.ins-bar{background:var(--cinza-claro);border-radius:4px;height:5px;margin:5px 0;overflow:hidden}
+.ins-bar-fill{height:100%;border-radius:4px;transition:width .5s}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-box{background:white;border-radius:16px;padding:24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 12px 50px rgba(0,0,0,.25)}
+.modal-box h3{font-size:.96rem;font-weight:800;color:var(--azul-escuro);margin-bottom:14px}
+.modal-actions{display:flex;gap:8px;margin-top:14px}
+/* FARMÁCIA */
+.saida-cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:9px;margin-bottom:12px}
+.saida-cat-card{background:white;border-radius:11px;box-shadow:var(--sombra);padding:13px;border-left:4px solid var(--verde)}
+/* ÓBITO CARD */
+.obito-card{background:white;border-radius:12px;box-shadow:var(--sombra);padding:14px;border-left:5px solid #374151;margin-bottom:10px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.obito-nome{font-size:.9rem;font-weight:800;color:var(--azul-escuro)}
+.obito-info{font-size:.7rem;color:var(--cinza);margin-top:3px}
+.obito-causa{font-size:.75rem;font-weight:700;margin-top:4px}
+/* RISCO BADGE */
+.risco-sem{background:#dcfce7;color:#166534;border-radius:6px;padding:2px 8px;font-size:.7rem;font-weight:700}
+.risco-baixo{background:#fef9c3;color:#713f12;border-radius:6px;padding:2px 8px;font-size:.7rem;font-weight:700}
+.risco-medio{background:#ffedd5;color:#9a3412;border-radius:6px;padding:2px 8px;font-size:.7rem;font-weight:700}
+.risco-alto{background:#fee2e2;color:#991b1b;border-radius:6px;padding:2px 8px;font-size:.7rem;font-weight:700}
+/* CHECK GROUP */
+.check-group{display:flex;align-items:center;gap:8px;padding:8px 12px;background:white;border:1.5px solid var(--cinza-claro);border-radius:8px;cursor:pointer;transition:.2s}
+.check-group:hover{border-color:var(--azul);background:#eff6ff}
+.check-group input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--azul-claro)}
+.check-group label{font-size:.8rem;font-weight:600;color:var(--texto);cursor:pointer}
+/* NOTIFICAÇÃO REALTIME */
+.notif-realtime{position:fixed;top:70px;right:16px;z-index:8888;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.notif-item{background:var(--azul-escuro);color:white;border-left:4px solid var(--amarelo);border-radius:10px;padding:10px 14px;font-size:.74rem;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.3);animation:slidein .4s ease;min-width:240px;pointer-events:auto}
+@keyframes slidein{from{opacity:0;transform:translateX(50px)}to{opacity:1;transform:translateX(0)}}
+/* HEADERS */
+.hdr-pac{background:linear-gradient(135deg,#0d2040,#1a5ba0)}
+.hdr-vac{background:linear-gradient(135deg,#065f46,#16a34a)}
+.hdr-gest{background:linear-gradient(135deg,#831843,#be185d)}
+.hdr-odonto{background:linear-gradient(135deg,#3730a3,#6d28d9)}
+.hdr-nutri{background:linear-gradient(135deg,#065f46,#059669)}
+.hdr-social{background:linear-gradient(135deg,#431407,#c2410c)}
+.hdr-farm{background:linear-gradient(135deg,#064e3b,#065f46)}
+.hdr-ins{background:linear-gradient(135deg,#1e1b4b,#6d28d9)}
+.hdr-rel{background:linear-gradient(135deg,#0d2040,#1a5ba0)}
+.hdr-mental{background:linear-gradient(135deg,#1e1b4b,#6d28d9)}
+.hdr-cras{background:linear-gradient(135deg,#0c4a6e,#0369a1)}
+.hdr-ct{background:linear-gradient(135deg,#431407,#ea580c)}
+.hdr-seg{background:linear-gradient(135deg,#1c1917,#44403c)}
+.hdr-ssm{background:linear-gradient(135deg,#052e16,#166534)}
+.hdr-obito{background:linear-gradient(135deg,#111827,#374151)}
+.hdr-dash{background:linear-gradient(135deg,#0d2040,#1a5ba0)}
+</style>
+</head>
+<body>
+
+<!-- NOTIFICAÇÕES REALTIME -->
+<div class="notif-realtime" id="notif-container"></div>
+
+<!-- DIAGNÓSTICO VISÍVEL -->
+<div id="diag-box" style="position:fixed;bottom:0;left:0;right:0;background:#111;color:#0f0;font-family:monospace;font-size:11px;padding:8px 12px;z-index:99999;max-height:160px;overflow-y:auto;border-top:2px solid #0f0">
+  <strong style="color:#ff0">🔍 DIAGNÓSTICO:</strong>
+  <div id="diag-log"></div>
+</div>
+
+<!-- MODAIS -->
+<div class="modal-overlay" id="modal-pac">
+  <div class="modal-box">
+    <h3 id="modal-pac-titulo">👤 Cadastrar Paciente</h3>
+    <div class="grid-form">
+      <div class="field" style="grid-column:span 2"><label>Nome Completo*</label><input id="mp-nome" placeholder="Nome completo do paciente"></div>
+      <div class="field"><label>CPF</label><input id="mp-cpf" placeholder="000.000.000-00"></div>
+      <div class="field"><label>Cartão SUS</label><input id="mp-sus" placeholder="000 0000 0000 0000"></div>
+      <div class="field"><label>Data de Nascimento</label><input type="date" id="mp-nasc"></div>
+      <div class="field"><label>Sexo</label><select id="mp-sexo"><option value="">Selecione</option><option value="M">Masculino</option><option value="F">Feminino</option></select></div>
+      <div class="field"><label>Nome da Mãe</label><input id="mp-mae" placeholder="Nome da mãe"></div>
+      <div class="field"><label>Telefone</label><input id="mp-tel" placeholder="(00) 00000-0000"></div>
+      <div class="field"><label>Aldeia / Endereço</label><input id="mp-aldeia" placeholder="Aldeia ou endereço"></div>
+      <div class="field"><label>Etnia / Povo Indígena</label><input id="mp-etnia" placeholder="Ex: Guarani Nhandewa"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" style="flex:1" onclick="salvarPaciente()">💾 Salvar</button>
+      <button class="btn" style="background:var(--cinza-claro);flex:1" onclick="fecharModal('modal-pac')">Cancelar</button>
+    </div>
+    <div class="msg ok" id="msg-pac-modal">✅ Paciente salvo!</div>
+    <div class="msg err" id="msg-pac-dup">⚠️ Já existe paciente com este nome!</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-mov-farm">
+  <div class="modal-box">
+    <h3 id="modal-mov-farm-titulo">Movimentação</h3>
+    <div class="grid-form">
+      <div class="field"><label>Quantidade</label><input type="number" min="1" id="mmf-qtd" value="1"></div>
+      <div class="field"><label>Motivo</label><input id="mmf-motivo" placeholder="Motivo/observação"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" style="flex:1" id="btn-mmf-ok" onclick="confirmarMovFarm()">Confirmar</button>
+      <button class="btn" style="background:var(--cinza-claro);flex:1" onclick="fecharModal('modal-mov-farm')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-mov-ins">
+  <div class="modal-box">
+    <h3 id="modal-mov-ins-titulo">Movimentação Insumo</h3>
+    <div class="grid-form">
+      <div class="field"><label>Quantidade</label><input type="number" min="1" id="mmi-qtd" value="1"></div>
+      <div class="field"><label>Motivo</label><input id="mmi-motivo" placeholder="Motivo/observação"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-success" style="flex:1" id="btn-mmi-ok" onclick="confirmarMovIns()">Confirmar</button>
+      <button class="btn" style="background:var(--cinza-claro);flex:1" onclick="fecharModal('modal-mov-ins')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-vac-pac">
+  <div class="modal-box">
+    <h3>💉 Adicionar Vacina ao Paciente</h3>
+    <div class="grid-form">
+      <div class="field" style="grid-column:span 2"><label>Paciente</label>
+        <select id="nova-vac-pac" onchange="calcCategoriaPorIdade()"></select>
+      </div>
+      <div class="field" style="grid-column:span 2"><label>Vacina</label>
+        <select id="mvp-vacina-sel" onchange="toggleVacinaManual()">
+          <option value="BCG">BCG</option><option value="Hepatite B (RN)">Hepatite B (RN)</option>
+          <option value="Penta (DTP+Hib+HepB)">Penta (DTP+Hib+HepB)</option><option value="VIP (Pólio Inativada)">VIP (Pólio Inativada)</option>
+          <option value="VRH (Rotavírus)">VRH (Rotavírus)</option><option value="Pneumo 10">Pneumo 10</option>
+          <option value="Meningo C">Meningo C</option><option value="Febre Amarela">Febre Amarela</option>
+          <option value="VOP (Pólio Oral)">VOP (Pólio Oral)</option><option value="SCRV (Tríplice Viral+Varicela)">SCRV (Tríplice Viral+Varicela)</option>
+          <option value="DTP (Reforço)">DTP (Reforço)</option><option value="Hepatite A">Hepatite A</option>
+          <option value="Varicela">Varicela</option><option value="Influenza">Influenza</option>
+          <option value="HPV">HPV</option><option value="Meningocócica ACWY">Meningocócica ACWY</option>
+          <option value="Pneumo 23">Pneumo 23 (adulto)</option><option value="dT (adulto)">dT (adulto)</option>
+          <option value="Raiva">Raiva</option><option value="Covid-19">Covid-19</option>
+          <option value="Outra (digitar)">✏️ Outra (digitar manualmente)</option>
+        </select>
+      </div>
+      <div class="field" style="grid-column:span 2;display:none" id="mvp-vacina-manual-wrap">
+        <label>Nome da Vacina (manual)</label>
+        <input id="mvp-vacina-manual" placeholder="Digite o nome da vacina">
+      </div>
+      <div class="field"><label>Categoria / Faixa Etária</label>
+        <select id="mvp-cat" onchange="toggleCatManual()">
+          <optgroup label="── Crianças (0–24 meses) ──">
+            <option value="RN">Recém-Nascido (0d)</option>
+            <option value="1 mês">1 mês</option>
+            <option value="2 meses">2 meses</option>
+            <option value="3 meses">3 meses</option>
+            <option value="4 meses">4 meses</option>
+            <option value="5 meses">5 meses</option>
+            <option value="6 meses">6 meses</option>
+            <option value="7 meses">7 meses</option>
+            <option value="8 meses">8 meses</option>
+            <option value="9 meses">9 meses</option>
+            <option value="10 meses">10 meses</option>
+            <option value="11 meses">11 meses</option>
+            <option value="12 meses">12 meses</option>
+            <option value="15 meses">15 meses</option>
+            <option value="18 meses">18 meses</option>
+            <option value="24 meses">24 meses</option>
+          </optgroup>
+          <optgroup label="── Por Idade ──">
+            <option value="3 anos">3 anos</option><option value="4 anos">4 anos</option>
+            <option value="5 anos">5 anos</option><option value="6 anos">6 anos</option>
+            <option value="7 anos">7 anos</option><option value="8 anos">8 anos</option>
+            <option value="9 anos">9 anos</option><option value="10 anos">10 anos</option>
+            <option value="11 anos">11 anos</option><option value="12 anos">12 anos</option>
+            <option value="13 anos">13 anos</option><option value="14 anos">14 anos</option>
+            <option value="15 anos">15 anos</option><option value="16 anos">16 anos</option>
+            <option value="17 anos">17 anos</option><option value="18 anos">18 anos</option>
+            <option value="19 anos">19 anos</option><option value="20 anos">20 anos</option>
+            <option value="21-30 anos">21–30 anos</option><option value="31-40 anos">31–40 anos</option>
+            <option value="41-50 anos">41–50 anos</option><option value="51-60 anos">51–60 anos</option>
+            <option value="61-70 anos">61–70 anos</option><option value="71-80 anos">71–80 anos</option>
+            <option value="81-90 anos">81–90 anos</option><option value="91-100 anos">91–100 anos</option>
+            <option value="101-130 anos">101–130 anos</option>
+          </optgroup>
+          <option value="Manual">✏️ Manual (digitar)</option>
+        </select>
+      </div>
+      <div class="field" id="mvp-cat-manual-wrap" style="display:none">
+        <label>Categoria Manual</label>
+        <input id="mvp-cat-manual" placeholder="Ex: Gestante, Idoso...">
+      </div>
+      <div class="field"><label>Status</label>
+        <select id="mvp-status">
+          <option value="pendente">⏳ Pendente</option>
+          <option value="aplicada">✅ Aplicada</option>
+          <option value="atrasada">⚠️ Atrasada</option>
+        </select>
+      </div>
+      <div class="field"><label>Data Prevista</label><input type="date" id="mvp-prevista"></div>
+      <div class="field"><label>Data Aplicada</label><input type="date" id="mvp-aplicada"></div>
+      <div class="field"><label>Lote</label><input id="mvp-lote" placeholder="Nº do lote"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-success" style="flex:1" onclick="salvarVacPac()">💾 Salvar</button>
+      <button class="btn" style="background:var(--cinza-claro);flex:1" onclick="fecharModal('modal-vac-pac')">Cancelar</button>
+    </div>
+    <div class="msg ok" id="msg-vac-pac">✅ Vacina registrada!</div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="icon">🏥</span>
+      <h1>PAINEL EMSI</h1>
+      <p>Polo Base Guaíra · DSEI Litoral Sul · SESAI/MS</p>
+    </div>
+    <div id="login-form">
+      <div class="form-group"><label>E-mail</label><input type="email" id="inp-email" onkeydown="if(event.key==='Enter')fazerLogin()"></div>
+      <div class="form-group"><label>Senha</label><input type="password" id="inp-senha" onkeydown="if(event.key==='Enter')fazerLogin()"></div>
+      <button class="btn-login" onclick="fazerLogin()" id="btn-entrar">Entrar</button>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="mostrarRecuperarSenha()" style="background:none;border:none;color:var(--azul-claro);font-family:'Sora',sans-serif;font-size:.78rem;cursor:pointer;text-decoration:underline">🔑 Esqueci minha senha</button>
+      </div>
+      <div class="login-erro" id="login-erro"></div>
+    </div>
+    <div id="recover-form" style="display:none">
+      <div class="form-group"><label>E-mail cadastrado</label><input type="email" id="inp-recover-email" placeholder="seu@email.com"></div>
+      <button class="btn-login" onclick="recuperarSenha()" id="btn-recover" style="background:linear-gradient(135deg,#065f46,#059669)">📧 Enviar link de recuperação</button>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="mostrarLogin()" style="background:none;border:none;color:var(--cinza);font-family:'Sora',sans-serif;font-size:.78rem;cursor:pointer">← Voltar ao login</button>
+      </div>
+      <div class="login-erro" id="recover-erro" style="background:#f0fdf4;border-color:#6ee7b7;color:#065f46"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <div class="header">
+    <div class="header-logo">🏥</div>
+    <div class="header-info">
+      <h1>PAINEL EMSI · Polo Base Guaíra</h1>
+      <p>Equipe Multidisciplinar de Saúde Indígena · DSEI Litoral Sul · SESAI/MS</p>
+    </div>
+    <div class="header-right">
+      <div id="status-online" class="realtime-badge"><span class="realtime-dot"></span><span id="status-txt">Online</span></div>
+      <div id="status-offline" style="display:none;align-items:center;gap:5px;background:rgba(192,57,43,.2);border:1px solid rgba(192,57,43,.4);border-radius:12px;padding:3px 10px;font-size:.6rem;font-weight:700;color:#fca5a5">📡 Offline</div>
+      <div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:3px 10px;font-size:.6rem;font-weight:700;color:rgba(255,255,255,.7)" id="badge-conectados">👥 <span id="num-conectados">1</span></div>
+      <div style="font-size:.58rem;font-family:'IBM Plex Mono',monospace;color:rgba(255,255,255,.4)" id="badge-speed">0 KB/s</div>
+      <div class="header-clock" id="hclock"></div>
+      <div class="header-user-card">
+        <div class="header-foto" id="hfoto">👤</div>
+        <div class="header-user-nome" id="huser">...</div>
+      </div>
+      <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+    </div>
+  </div>
+
+  <!-- TABS ADMIN (Coordenador) -->
+  <div class="tabs-wrap" id="tabs-admin" style="display:none">
+    <button class="tab-btn" onclick="st('dash',this)">📊 Painel Central</button>
+    <button class="tab-btn" onclick="st('pacientes',this)">👥 Pacientes</button>
+    <button class="tab-btn" onclick="st('vacinas',this)">💉 Vacinação</button>
+    <button class="tab-btn" onclick="st('gestante',this)">🤰 Gestantes</button>
+    <button class="tab-btn" onclick="st('medico',this)">🩺 Médico</button>
+    <button class="tab-btn" onclick="st('odonto',this)">🦷 Odonto</button>
+    <button class="tab-btn" onclick="st('nutricao',this)">🥦 Nutrição</button>
+    <button class="tab-btn" onclick="st('social',this)">🤝 Social</button>
+    <button class="tab-btn" onclick="st('mental',this)">🧠 Saúde Mental</button>
+    <button class="tab-btn" onclick="st('cras',this)">🏛️ CRAS/CREAS</button>
+    <button class="tab-btn" onclick="st('ct',this)">👨‍⚖️ Cons. Tutelar</button>
+    <button class="tab-btn" onclick="st('seguranca',this)">🚔 Segurança</button>
+    <button class="tab-btn" onclick="st('ssm',this)">🏥 Sec. Saúde</button>
+    <button class="tab-btn" onclick="st('obitos',this)">⚫ Óbitos</button>
+    <button class="tab-btn" onclick="st('farmacia',this)">💊 Farmácia</button>
+    <button class="tab-btn" onclick="st('insumos',this)">🔬 Insumos Odonto</button>
+    <button class="tab-btn" onclick="st('educacao',this)">📢 Educação em Saúde</button>
+    <button class="tab-btn" onclick="st('chat',this)">💬 Chat Equipe</button>
+    <button class="tab-btn" onclick="st('relatorio',this)">📄 Relatório</button>
+    <button class="tab-btn" onclick="st('usuarios',this)">⚙️ Usuários</button>
+    <button class="tab-btn" onclick="st('perfil',this)">👤 Perfil</button>
+  </div>
+
+  <!-- TABS PROFISSIONAL -->
+  <div class="tabs-wrap" id="tabs-prof" style="display:none">
+    <button class="tab-btn" onclick="st('minha-prod',this)">📋 Minha Produção</button>
+    <button class="tab-btn" onclick="st('pacientes',this)">👥 Pacientes</button>
+    <button class="tab-btn" onclick="st('vacinas',this)">💉 Vacinação</button>
+    <button class="tab-btn" onclick="st('gestante',this)">🤰 Gestantes</button>
+    <button class="tab-btn" onclick="st('medico',this)">🩺 Médico</button>
+    <button class="tab-btn" onclick="st('odonto',this)">🦷 Odonto</button>
+    <button class="tab-btn" onclick="st('nutricao',this)">🥦 Nutrição</button>
+    <button class="tab-btn" onclick="st('social',this)">🤝 Social</button>
+    <button class="tab-btn" onclick="st('mental',this)">🧠 Saúde Mental</button>
+    <button class="tab-btn" onclick="st('cras',this)">🏛️ CRAS/CREAS</button>
+    <button class="tab-btn" onclick="st('ct',this)">👨‍⚖️ Cons. Tutelar</button>
+    <button class="tab-btn" onclick="st('seguranca',this)">🚔 Segurança</button>
+    <button class="tab-btn" onclick="st('ssm',this)">🏥 Sec. Saúde</button>
+    <button class="tab-btn" onclick="st('obitos',this)">⚫ Óbitos</button>
+    <button class="tab-btn" onclick="st('farmacia',this)">💊 Farmácia</button>
+    <button class="tab-btn" onclick="st('educacao',this)">📢 Educação em Saúde</button>
+    <button class="tab-btn" onclick="st('chat',this)">💬 Chat Equipe</button>
+    <button class="tab-btn" onclick="st('perfil',this)">👤 Perfil</button>
+  </div>
+
+  <!-- PERÍODO BAR -->
+  <div class="main" id="main-periodo" style="display:none">
+    <div class="periodo-bar">
+      <label>Mês:</label>
+      <select id="sel-mes"><option value="01">Jan</option><option value="02">Fev</option><option value="03" selected>Mar</option><option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select>
+      <label>Ano:</label>
+      <select id="sel-ano"><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option><option value="2031">2031</option></select>
+      <button class="btn-carregar" onclick="carregarTudo()">🔄 Atualizar</button>
+    </div>
+  </div>
+
+  <!-- ===== PAINEL CENTRAL (DASHBOARD) ===== -->
+  <div id="tab-dash" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:1rem;font-weight:800;color:var(--azul-escuro)">📊 Painel Central — Indicadores em Tempo Real</h3>
+      <button class="btn-pdf" onclick="pdfDash()">🖨️ PDF</button>
+    </div>
+    <div id="alerta-suicidio"></div>
+    <div id="alerta-vacinas"></div>
+
+    <!-- SEÇÃO SAÚDE -->
+    <div class="sep">🏥 Indicadores de Saúde — EMSI</div>
+    <div class="dash-grid" id="stats-saude"></div>
+    <div class="charts-row">
+      <div class="chart-box"><h4>💉 Vacinação — Status</h4><canvas id="cVac" height="220"></canvas></div>
+      <div class="chart-box"><h4>🤰 Gestantes — Risco</h4><canvas id="cGest" height="220"></canvas></div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-box"><h4>🩺 Atendimentos por Área</h4><canvas id="cAtend" height="220"></canvas></div>
+      <div class="chart-box"><h4>💊 Farmácia — Estoque Crítico</h4><canvas id="cFarm" height="220"></canvas></div>
+    </div>
+
+    <!-- SEÇÃO INTERSETORIAL -->
+    <div class="sep">🔗 Indicadores Intersetoriais</div>
+    <div class="dash-grid" id="stats-inter"></div>
+    <div class="charts-row">
+      <div class="chart-box"><h4>🧠 Saúde Mental — Distribuição</h4><canvas id="cMental" height="220"></canvas></div>
+      <div class="chart-box"><h4>⚫ Óbitos por Causa</h4><canvas id="cObitos" height="220"></canvas></div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-box"><h4>🏛️ CRAS/CREAS — Demandas</h4><canvas id="cCras" height="220"></canvas></div>
+      <div class="chart-box"><h4>🚔 Segurança Pública — Ocorrências</h4><canvas id="cSeg" height="220"></canvas></div>
+    </div>
+  </div></div>
+
+  <!-- ===== PACIENTES ===== -->
+  <div id="tab-pacientes" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:var(--azul-escuro)">👥 Cadastro de Pacientes — Compartilhado</h3>
+      <div style="display:flex;gap:6px"><button class="btn btn-success btn-sm" onclick="abrirModalPac()">➕ Novo Paciente</button><button class="btn-pdf btn-sm" onclick="pdfPacientes()">🖨️ PDF</button></div>
+    </div>
+    <div class="info-box ib-azul">👥 Pacientes cadastrados aqui aparecem em <strong>todas as abas</strong> para todos os profissionais em tempo real. Não é permitido cadastrar o mesmo nome duas vezes.</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input id="busca-pac" placeholder="🔍 Buscar por nome, CPF ou SUS..." style="flex:1;border:1.5px solid var(--cinza-claro);border-radius:8px;padding:8px 12px;font-family:'Sora',sans-serif;font-size:.8rem;outline:none;background:var(--bg)" oninput="filtrarPacientes()">
+    </div>
+    <div id="lista-pacientes"></div>
+  </div></div>
+
+  <!-- ===== VACINAS ===== -->
+  <div id="tab-vacinas" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:var(--verde)">💉 Controle de Vacinação Infantil</h3>
+      <button class="btn-pdf" onclick="pdfVacinas()">🖨️ PDF</button>
+    </div>
+    <div id="alerta-vacinas-tab"></div>
+    <div class="dash-grid" id="stats-vacinas"></div>
+    <div class="tw">
+      <div class="tw-head">📋 Pacientes e Status de Vacinação
+        <select id="filtro-vac-status" style="border:1.5px solid rgba(255,255,255,.3);border-radius:6px;background:rgba(255,255,255,.1);color:white;font-family:'Sora',sans-serif;font-size:.7rem;padding:4px 8px;outline:none" onchange="renderVacinasPacientes()">
+          <option value="todos">Todos os status</option><option value="atrasada">⚠️ Atrasadas</option><option value="pendente">⏳ Pendentes</option><option value="aplicada">✅ Aplicadas</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Paciente</th><th>Idade</th><th>Vacina</th><th>Categoria</th><th>Prevista</th><th>Aplicada</th><th>Status</th><th>Lote</th><th>Ações</th></tr></thead><tbody id="tbody-vacinas"></tbody></table></div>
+    </div>
+    <div class="sep">➕ Registrar Nova Vacina</div>
+    <div class="card">
+      <div class="card-header hdr-vac"><h2>💉 Vincular Vacina a Paciente</h2></div>
+      <div class="card-body">
+        <div class="grid-form">
+          <div class="field" style="grid-column:span 2"><label>Paciente</label><select id="nova-vac-pac"></select></div>
+        </div>
+        <button class="btn btn-success btn-sm" onclick="abrirModalVacPac()">➕ Adicionar Vacina</button>
+      </div>
+    </div>
+  </div></div>
+
+  <!-- ===== GESTANTE ===== -->
+  <div id="tab-gestante" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:var(--rosa)">🤰 Acompanhamento de Gestantes</h3>
+      <button class="btn-pdf" onclick="pdfGestante()">🖨️ PDF</button>
+    </div>
+    <div class="dash-grid" id="stats-gest"></div>
+    <div class="card">
+      <div class="card-header hdr-gest"><h2>🤰 Cadastrar / Atualizar Gestante</h2><p id="gest-periodo"></p></div>
+      <div class="card-body">
+        <div class="sep">👤 Selecionar Paciente</div>
+        <div class="grid-form">
+          <div class="field" style="grid-column:span 2"><label>Paciente</label><select id="gest-pac-sel" onchange="carregarDadosGestante()"></select></div>
+        </div>
+        <div id="gest-form-wrap"></div>
+      </div>
+    </div>
+    <div class="tw">
+      <div class="tw-head">📋 Lista de Gestantes Acompanhadas</div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Nome</th><th>Aldeia</th><th>Mês Gestação</th><th>DPP</th><th>Risco</th><th>Pré-natal</th><th>Peso</th><th>Pressão</th><th>Vacinação</th></tr></thead><tbody id="tbody-gest"></tbody></table></div>
+    </div>
+  </div></div>
+
+  <!-- ===== MÉDICO ===== -->
+  <div id="tab-medico" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:var(--azul-claro)">🩺 Atendimentos Médicos</h3>
+      <button class="btn-pdf" onclick="pdfMedico()">🖨️ PDF</button>
+    </div>
+    <div class="card">
+      <div class="card-header hdr-pac"><h2>🩺 Novo Atendimento Médico</h2></div>
+      <div class="card-body">
+        <div class="grid-form">
+          <div class="field" style="grid-column:span 2"><label>Paciente</label><select id="med-pac-sel"></select></div>
+          <div class="field"><label>Data</label><input type="date" id="med-data"></div>
+          <div class="field"><label>Queixa Principal</label><input id="med-queixa" placeholder="Queixa do paciente"></div>
+          <div class="field" style="grid-column:span 2"><label>Diagnóstico</label><input id="med-diag" placeholder="Diagnóstico clínico"></div>
+          <div class="field"><label>CID-10</label><input id="med-cid" placeholder="Ex: J06.9"></div>
+          <div class="field" style="grid-column:span 2"><label>Conduta / Tratamento</label><input id="med-conduta" placeholder="Conduta e tratamento prescritos"></div>
+          <div class="field"><label>Encaminhamento</label><input id="med-encam" placeholder="Especialidade/serviço"></div>
+          <div class="field"><label>Data de Retorno</label><input type="date" id="med-retorno"></div>
+        </div>
+        <button class="btn btn-primary" onclick="salvarAtendimentoModulo('medico')">💾 Salvar Atendimento</button>
+        <div class="msg ok" id="msg-med">✅ Salvo!</div>
+      </div>
+    </div>
+    <div class="tw">
+      <div class="tw-head">📋 Histórico de Atendimentos Médicos</div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Queixa</th><th>Diagnóstico</th><th>CID</th><th>Conduta</th><th>Encam.</th><th>Retorno</th></tr></thead><tbody id="tbody-med"></tbody></table></div>
+    </div>
+  </div></div>
+
+  <!-- ===== ODONTO ===== -->
+  <div id="tab-odonto" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:var(--roxo)">🦷 Atendimentos Odontológicos</h3>
+      <button class="btn-pdf" onclick="pdfOdonto()">🖨️ PDF</button>
+    </div>
+    <div class="card">
+      <div class="card-header hdr-odonto"><h2>🦷 Novo Atendimento Odontológico</h2></div>
+      <div class="card-body">
+        <div class="grid-form">
+          <div class="field" style="grid-column:span 2"><label>Paciente</label><select id="odo-pac-sel"></select></div>
+          <div class="field"><label>Data</label><input type="date" id="odo-data"></div>
+          <div class="field"><label>Tipo de Atendimento</label>
+            <select id="odo-tipo" onchange="toggleOdoTipo()">
+              <option value="clinico">🦷 Clínico / Procedimento</option>
+              <option value="visita">🏠 Visita Domiciliar</option>
+              <option value="escovacao">🪥 Escovação Supervisionada</option>
+              <option value="palestra">📢 Palestra / Educação em Saúde</option>
+            </select>
+          </div>
+          <div class="field" id="odo-proc-wrap"><label>Procedimento</label>
+            <select id="odo-proc">
+              <option value="Consulta/Triagem">Consulta/Triagem</option><option value="Extração">Extração</option>
+              <option value="Restauração">Restauração</option><option value="Endodontia">Endodontia</option>
+              <option value="Raspagem">Raspagem Periodontal</option><option value="Profilaxia">Profilaxia</option>
+              <option value="Flúor">Aplicação de Flúor</option><option value="Escovação Supervisionada">Escovação Supervisionada</option>
+              <option value="Cirurgia">Cirurgia Oral Menor</option><option value="Urgência">Urgência</option>
+            </select>
+          </div>
+          <div class="field" id="odo-dente-wrap"><label>Dente / Região</label><input id="odo-dente" placeholder="Ex: 36, Anterior"></div>
+          <div class="field" id="odo-tema-wrap" style="display:none;grid-column:span 2"><label>Tema da Palestra / Atividade</label><input id="odo-tema" placeholder="Ex: Higiene bucal, Prevenção de cárie..."></div>
+          <div class="field" id="odo-local-wrap" style="display:none"><label>Local da Visita / Atividade</label><input id="odo-local" placeholder="Ex: Aldeia Tekoha, Escola..."></div>
+          <div class="field" id="odo-participantes-wrap" style="display:none"><label>Nº Participantes</label><input type="number" min="1" id="odo-participantes" placeholder="Ex: 15"></div>
+          <div class="field" style="grid-column:span 2"><label>Observações</label><input id="odo-obs" placeholder="Observações clínicas"></div>
+          <div class="field"><label>Data de Retorno / Próxima Visita</label><input type="date" id="odo-retorno"></div>
+        </div>
+        <button class="btn btn-primary" style="background:var(--roxo)" onclick="salvarAtendimentoModulo('odonto')">💾 Salvar</button>
+        <div class="msg ok" id="msg-odo">✅ Salvo!</div>
+      </div>
+    </div>
+    <div class="tw">
+      <div class="tw-head">📋 Histórico Odontológico</div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Tipo</th><th>Procedimento/Tema</th><th>Dente/Local</th><th>Participantes</th><th>Observações</th><th>Próx. Visita/Retorno</th></tr></thead><tbody id="tbody-odo"></tbody></table></div>
+    </div>
+  </div></div>
+
+  <!-- ===== NUTRIÇÃO ===== -->
+  <div id="tab-nutricao" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:var(--verde)">🥦 Acompanhamento Nutricional</h3>
+      <button class="btn-pdf" onclick="pdfNutricao()">🖨️ PDF</button>
+    </div>
+    <div class="card">
+      <div class="card-header hdr-nutri"><h2>🥦 Novo Atendimento Nutricional</h2></div>
+      <div class="card-body">
+        <div class="grid-form">
+          <div class="field" style="grid-column:span 2"><label>Paciente</label><select id="nut-pac-sel"></select></div>
+          <div class="field"><label>Data</label><input type="date" id="nut-data"></div>
+          <div class="field"><label>Peso (kg)</label><input type="number" step="0.1" id="nut-peso" placeholder="Ex: 65.5" oninput="calcIMC()"></div>
+          <div class="field"><label>Altura (cm)</label><input type="number" id="nut-altura" placeholder="Ex: 165" oninput="calcIMC()"></div>
+          <div class="field"><label>IMC (calculado)</label><input id="nut-imc" readonly style="background:#f0fdf4;border-color:#6ee7b7;font-weight:700"></div>
+          <div class="field"><label>Classificação IMC</label><input id="nut-class-imc" readonly style="background:#f0fdf4;font-weight:700"></div>
+          <div class="field"><label>Circ. Abdominal (cm)</label><input type="number" id="nut-ca" placeholder="Ex: 80"></div>
+          <div class="field" style="grid-column:span 2"><label>Diagnóstico Nutricional</label><input id="nut-diag" placeholder="Diagnóstico nutricional"></div>
+          <div class="field" style="grid-column:span 2"><label>Conduta / Orientações</label><input id="nut-conduta" placeholder="Orientações nutricionais"></div>
+          <div class="field"><label>Data de Retorno</label><input type="date" id="nut-retorno"></div>
+        </div>
+        <button class="btn btn-success" onclick="salvarAtendimentoModulo('nutricao')">💾 Salvar</button>
+        <div class="msg ok" id="msg-nut">✅ Salvo!</div>
+      </div>
+    </div>
+    <div class="tw">
+      <div class="tw-head">📋 Histórico Nutricional</div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Peso</th><th>Altura</th><th>IMC</th><th>Classificação</th><th>Circ. Abd.</th><th>Diagnóstico</th><th>Retorno</th></tr></thead><tbody id="tbody-nut"></tbody></table></div>
+    </div>
+  </div></div>
+
+  <!-- ===== SOCIAL ===== -->
+  <div id="tab-social" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:var(--laranja)">🤝 Atendimentos Sociais</h3>
+      <button class="btn-pdf" onclick="pdfSocial()">🖨️ PDF</button>
+    </div>
+    <div class="card">
+      <div class="card-header hdr-social"><h2>🤝 Novo Atendimento Social</h2></div>
+      <div class="card-body">
+        <div class="grid-form">
+          <div class="field" style="grid-column:span 2"><label>Paciente</label><select id="soc-pac-sel"></select></div>
+          <div class="field"><label>Data</label><input type="date" id="soc-data"></div>
+          <div class="field" style="grid-column:span 2"><label>Demanda / Motivo</label><input id="soc-demanda" placeholder="Demanda apresentada"></div>
+          <div class="field" style="grid-column:span 2"><label>Vulnerabilidades Identificadas</label><input id="soc-vuln" placeholder="Ex: Insegurança alimentar, violência doméstica..."></div>
+          <div class="field" style="grid-column:span 2"><label>Encaminhamentos Realizados</label><input id="soc-encam" placeholder="Serviços e redes acionadas"></div>
+          <div class="field" style="grid-column:span 2"><label>Benefícios Acessados</label><input id="soc-benef" placeholder="Ex: Bolsa Família, BPC, cesta..."></div>
+          <div class="field" style="grid-column:span 2"><label>Observações</label><input id="soc-obs" placeholder="Observações gerais"></div>
+        </div>
+        <button class="btn" style="background:#c2410c;color:white" onclick="salvarAtendimentoModulo('social')">💾 Salvar</button>
+        <div class="msg ok" id="msg-soc">✅ Salvo!</div>
+      </div>
+    </div>
+    <div class="tw">
+      <div class="tw-head">📋 Histórico de Atendimentos Sociais</div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Demanda</th><th>Vulnerabilidades</th><th>Encaminhamentos</th><th>Benefícios</th></tr></thead><tbody id="tbody-soc"></tbody></table></div>
+    </div>
+  </div></div>
+
+  <!-- ===== SAÚDE MENTAL ===== -->
+  <div id="tab-mental" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:var(--roxo)">🧠 Saúde Mental — Psicologia</h3>
+      <button class="btn-pdf" onclick="pdfMental()">🖨️ PDF</button>
+    </div>
+    <div id="alerta-mental"></div>
+    <div class="dash-grid" id="stats-mental"></div>
+    <div class="card">
+      <div class="card-header hdr-mental"><h2>🧠 Registrar Atendimento de Saúde Mental</h2></div>
+      <div class="card-body">
+        <div class="sep">👤 Identificação</div>
+        <div class="grid-form">
+          <div class="field" style="grid-column:span 2"><label>Paciente</label><select id="sm-pac"></select></div>
+          <div class="field"><label>Data do Atendimento</label><input type="date" id="sm-data"></div>
+          <div class="field"><label>Tipo de Atendimento</label>
+            <select id="sm-tipo">
+              <option value="Consulta Individual">Consulta Individual</option><option value="Grupo Terapêutico">Grupo Terapêutico</option>
+              <option value="Visita Domiciliar">Visita Domiciliar</option><option value="Atendimento em Crise">Atendimento em Crise</option>
+              <option value="Acolhimento">Acolhimento</option><option value="Psicoeducação">Psicoeducação</option>
+              <option value="Interconsulta">Interconsulta</option>
+            </select>
+          </div>
+        </div>
+        <div class="sep">📋 Diagnóstico e Medicação</div>
+        <div class="grid-form">
+          <div class="field"><label>CID-10</label><input id="sm-cid" placeholder="Ex: F32.0" class="roxo"></div>
+          <div class="field"><label>Diagnóstico</label><input id="sm-diag" placeholder="Diagnóstico clínico" class="roxo"></div>
+          <div class="field"><label>Medicação Psicotrópica</label><input id="sm-med" placeholder="Ex: Risperidona 1mg" class="roxo"></div>
+        </div>
+        <div class="grid-form" style="margin-top:8px">
+          <label class="check-group"><input type="checkbox" id="sm-usa-psico"><label for="sm-usa-psico">💊 Usuário de Psicotrópico</label></label>
+          <label class="check-group"><input type="checkbox" id="sm-tent-suic"><label for="sm-tent-suic">🆘 Tentativa de Suicídio</label></label>
+          <label class="check-group"><input type="checkbox" id="sm-rede"><label for="sm-rede">🔗 Acompanhamento em Rede</label></label>
+        </div>
+        <div class="sep">⚠️ Situação de Violência e Risco</div>
+        <div class="grid-form">
+          <div class="field"><label>Situação de Violência</label>
+            <select id="sm-viol">
+              <option value="">Sem violência</option><option value="Violência Física">Violência Física</option>
+              <option value="Violência Psicológica">Violência Psicológica</option><option value="Violência Sexual">Violência Sexual</option>
+              <option value="Violência Patrimonial">Violência Patrimonial</option><option value="Negligência">Negligência</option>
+              <option value="Automutilação">Automutilação</option><option value="Outras">Outras</option>
+            </select>
+          </div>
+          <div class="field"><label>Risco de Suicídio</label>
+            <select id="sm-risco">
+              <option value="sem risco">✅ Sem Risco</option><option value="baixo">🟡 Baixo</option>
+              <option value="médio">🟠 Médio</option><option value="alto">🔴 Alto</option><option value="iminente">🔴🔴 Iminente</option>
+            </select>
+          </div>
+          <div class="field"><label>Data Tentativa (se houver)</label><input type="date" id="sm-data-tent" class="alerta"></div>
+          <div class="field"><label>Rede / Serviço</label><input id="sm-rede-serv" placeholder="Ex: CAPS, NASF, CRAS..." class="roxo"></div>
+        </div>
+        <div class="sep">📋 Encaminhamento</div>
+        <div class="grid-form">
+          <div class="field" style="grid-column:span 2"><label>Encaminhamento</label><input id="sm-encam" placeholder="Para onde foi encaminhado"></div>
+          <div class="field" style="grid-column:span 2"><label>Observações</label><textarea id="sm-obs" style="height:60px;resize:none" placeholder="Observações clínicas relevantes"></textarea></div>
+        </div>
+        <button class="btn btn-primary" style="background:#6d28d9" onclick="salvarMental()">💾 Salvar Atendimento</button>
+        <div class="msg ok" id="msg-mental">✅ Salvo com sucesso!</div>
+      </div>
+    </div>
+    <div class="tw">
+      <div class="tw-head">📋 Histórico — Saúde Mental
+        <select id="filtro-mental" style="border:1.5px solid rgba(255,255,255,.3);border-radius:6px;background:rgba(255,255,255,.1);color:white;font-family:'Sora',sans-serif;font-size:.7rem;padding:4px 8px;outline:none" onchange="renderMentalTabela()">
+          <option value="todos">Todos</option><option value="tentativa">Tentativa Suicídio</option>
+          <option value="psicotropico">Psicotrópicos</option><option value="violencia">Com Violência</option><option value="alto">Risco Alto/Iminente</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Tipo Atend.</th><th>CID</th><th>Diagnóstico</th><th>Psicotr.</th><th>Violência</th><th>Risco</th><th>T. Suicídio</th><th>Rede</th><th>Encam.</th></tr></thead><tbody id="tbody-mental"></tbody></table></div>
+    </div>
+    <div class="tw" style="margin-top:14px">
+      <div class="tw-head" style="background:linear-gradient(135deg,#1e1b4b,#4c1d95)">💊 Usuários de Psicotrópicos</div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Paciente</th><th>Aldeia</th><th>Medicação</th><th>Diagnóstico</th><th>Último Atend.</th></tr></thead><tbody id="tbody-psico"></tbody></table></div>
+    </div>
+    <div class="tw" style="margin-top:14px">
+      <div class="tw-head" style="background:linear-gradient(135deg,#7f1d1d,#991b1b)">🆘 Tentativas de Suicídio</div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Paciente</th><th>Data Tentativa</th><th>Risco</th><th>Encaminhamento</th><th>Rede</th></tr></thead><tbody id="tbody-suicidio"></tbody></table></div>
+    </div>
+  </div></div>
+
+  <!-- ===== CRAS/CREAS ===== -->
+  <div id="tab-cras" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:#0369a1">🏛️ CRAS / CREAS — Indicadores</h3>
+      <button class="btn-pdf" onclick="pdfCras()">🖨️ PDF</button>
+    </div>
+    <div class="dash-grid" id="stats-cras"></div>
+    <div class="card">
+      <div class="card-header hdr-cras"><h2>🏛️ Registrar Atendimento CRAS/CREAS</h2></div>
+      <div class="card-body">
+        <div class="grid-form">
+          <div class="field" style="grid-column:span 2"><label>Paciente / Família</label><select id="cras-pac"></select></div>
+          <div class="field"><label>Serviço</label>
+            <select id="cras-serv">
+              <option value="CRAS">CRAS</option><option value="CREAS">CREAS</option>
+              <option value="PAIF">PAIF</option><option value="PAEFI">PAEFI</option>
+            </select>
+          </div>
+          <div class="field"><label>Data Atendimento</label><input type="date" id="cras-data"></div>
+          <div class="field"><label>Tipo de Demanda</label>
+            <select id="cras-demanda">
+              <option value="Benefícios Sociais">Benefícios Sociais</option><option value="Violência Doméstica">Violência Doméstica</option>
+              <option value="Vulnerabilidade Alimentar">Vulnerabilidade Alimentar</option><option value="Situação de Rua">Situação de Rua</option>
+              <option value="Criança em Risco">Criança em Risco</option><option value="Idoso em Vulnerabilidade">Idoso em Vulnerabilidade</option>
+              <option value="Trabalho Infantil">Trabalho Infantil</option><option value="Outras">Outras</option>
+            </select>
+          </div>
+          <div class="field"><label>Benefício Acessado</label><input id="cras-benef" placeholder="Ex: Bolsa Família, BPC"></div>
+          <div class="field"><label>Programa Social</label><input id="cras-prog" placeholder="Ex: CadÚnico, SUAS"></div>
+          <div class="field"><label>Situação Familiar</label>
+            <select id="cras-sit-fam">
+              <option value="Estável">Estável</option><option value="Vulnerável">Vulnerável</option>
+              <option value="Em Risco">Em Risco</option><option value="Crítica">Crítica</option>
+            </select>
+          </div>
+          <div class="field"><label>Renda Familiar</label>
+            <select id="cras-renda">
+              <option value="Sem renda">Sem renda</option><option value="Até 1/4 SM">Até 1/4 SM</option>
+              <option value="Até 1/2 SM">Até 1/2 SM</option><option value="Até 1 SM">Até 1 SM</option><option value="Acima de 1 SM">Acima de 1 SM</option>
+            </select>
+          </div>
+          <div class="field"><label>Nº Membros Família</label><input type="number" min="1" id="cras-membros" value="1"></div>
+          <label class="check-group"><input type="checkbox" id="cras-crianca"><label for="cras-crianca">👧 Crianças Vulneráveis</label></label>
+          <label class="check-group"><input type="checkbox" id="cras-violencia"><label for="cras-violencia">⚠️ Situação de Violência</label></label>
+          <div class="field" style="grid-column:span 2"><label>Encaminhamentos</label><input id="cras-encam" placeholder="Serviços acionados"></div>
+          <div class="field" style="grid-column:span 2"><label>Observações</label><textarea id="cras-obs" style="height:50px;resize:none"></textarea></div>
+        </div>
+        <button class="btn btn-primary" style="background:#0369a1" onclick="salvarCras()">💾 Registrar Atendimento</button>
+        <div class="msg ok" id="msg-cras">✅ Registrado!</div>
+      </div>
+    </div>
+    <div class="tw">
+      <div class="tw-head">📋 Histórico — CRAS/CREAS</div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente/Família</th><th>Serviço</th><th>Demanda</th><th>Situação Familiar</th><th>Benefício</th><th>Encam.</th></tr></thead><tbody id="tbody-cras"></tbody></table></div>
+    </div>
+  </div></div>
+
+  <!-- ===== CONSELHO TUTELAR ===== -->
+  <div id="tab-ct" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:#ea580c">👨‍⚖️ Conselho Tutelar</h3>
+      <button class="btn-pdf" onclick="pdfCT()">🖨️ PDF</button>
+    </div>
+    <div class="dash-grid" id="stats-ct"></div>
+    <div class="card">
+      <div class="card-header hdr-ct"><h2>👨‍⚖️ Registrar Ocorrência — Conselho Tutelar</h2></div>
+      <div class="card-body">
+        <div class="grid-form">
+          <div class="field" style="grid-column:span 2"><label>Criança / Adolescente</label><select id="ct-pac"></select></div>
+          <div class="field"><label>Data da Ocorrência</label><input type="date" id="ct-data"></div>
+          <div class="field"><label>Tipo de Violação</label>
+            <select id="ct-tipo">
+              <option value="Violência Física">Violência Física</option><option value="Violência Psicológica">Violência Psicológica</option>
+              <option value="Violência Sexual">Violência Sexual</option><option value="Negligência">Negligência</option>
+              <option value="Abandono">Abandono</option><option value="Trabalho Infantil">Trabalho Infantil</option>
+              <option value="Drogadição">Drogadição</option><option value="Outras">Outras</option>
+            </select>
+          </div>
+          <div class="field"><label>Agressor</label>
+            <select id="ct-agressor">
+              <option value="Pai/Mãe">Pai/Mãe</option><option value="Padrasto/Madrasta">Padrasto/Madrasta</option>
+              <option value="Familiar">Familiar</option><option value="Desconhecido">Desconhecido</option><option value="Outros">Outros</option>
+            </select>
+          </div>
+          <div class="field"><label>Status do Caso</label>
+            <select id="ct-status">
+              <option value="Em Acompanhamento">Em Acompanhamento</option><option value="Encerrado">Encerrado</option>
+              <option value="Encaminhado MP">Encaminhado ao MP</option><option value="Em Investigação">Em Investigação</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column:span 2"><label>Medida Aplicada</label><input id="ct-medida" placeholder="Medida aplicada pelo Conselho"></div>
+          <div class="field" style="grid-column:span 2"><label>Encaminhamentos</label><input id="ct-encam" placeholder="Serviços acionados"></div>
+          <div class="field" style="grid-column:span 2"><label>Observações</label><textarea id="ct-obs" style="height:50px;resize:none"></textarea></div>
+        </div>
+        <button class="btn btn-danger" onclick="salvarCT()">💾 Registrar Ocorrência</button>
+        <div class="msg ok" id="msg-ct">✅ Registrado!</div>
+      </div>
+    </div>
+    <div class="tw">
+      <div class="tw-head">📋 Ocorrências — Conselho Tutelar</div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Criança/Adolescente</th><th>Tipo Violação</th><th>Agressor</th><th>Status</th><th>Medida</th><th>Encam.</th></tr></thead><tbody id="tbody-ct"></tbody></table></div>
+    </div>
+  </div></div>
+
+  <!-- ===== SEGURANÇA PÚBLICA ===== -->
+  <div id="tab-seguranca" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:#374151">🚔 Segurança Pública</h3>
+      <button class="btn-pdf" onclick="pdfSeg()">🖨️ PDF</button>
+    </div>
+    <div class="dash-grid" id="stats-seg"></div>
+    <div class="card">
+      <div class="card-header hdr-seg"><h2>🚔 Registrar Ocorrência — Segurança Pública</h2></div>
+      <div class="card-body">
+        <div class="grid-form">
+          <div class="field" style="grid-column:span 2"><label>Indígena Envolvido</label><select id="seg-pac"></select></div>
+          <div class="field"><label>Data da Ocorrência</label><input type="date" id="seg-data"></div>
+          <div class="field"><label>Tipo de Ocorrência</label>
+            <select id="seg-tipo">
+              <option value="Homicídio">Homicídio</option><option value="Tentativa de Homicídio">Tentativa de Homicídio</option>
+              <option value="Agressão Física">Agressão Física</option><option value="Violência Sexual">Violência Sexual</option>
+              <option value="Roubo/Furto">Roubo/Furto</option><option value="Uso de Drogas">Uso de Drogas</option>
+              <option value="Tráfico">Tráfico</option><option value="Porte de Arma">Porte de Arma</option><option value="Outras">Outras</option>
+            </select>
+          </div>
+          <div class="field"><label>Envolvimento</label>
+            <select id="seg-envolvimento">
+              <option value="Vítima">Vítima</option><option value="Suspeito">Suspeito</option><option value="Testemunha">Testemunha</option>
+            </select>
+          </div>
+          <div class="field"><label>Local</label><input id="seg-local" placeholder="Local da ocorrência"></div>
+          <div class="field"><label>Boletim de Ocorrência</label><input id="seg-bo" placeholder="Nº do BO"></div>
+          <div class="field" style="grid-column:span 2"><label>Encaminhamentos</label><input id="seg-encam" placeholder="Medidas adotadas"></div>
+          <div class="field" style="grid-column:span 2"><label>Observações</label><textarea id="seg-obs" style="height:50px;resize:none"></textarea></div>
+        </div>
+        <button class="btn" style="background:#44403c;color:white" onclick="salvarSeg()">💾 Registrar Ocorrência</button>
+        <div class="msg ok" id="msg-seg">✅ Registrado!</div>
+      </div>
+    </div>
+    <div class="tw">
+      <div class="tw-head">📋 Ocorrências — Segurança Pública</div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Indígena</th><th>Tipo</th><th>Envolvimento</th><th>Local</th><th>BO</th><th>Encam.</th></tr></thead><tbody id="tbody-seg"></tbody></table></div>
+    </div>
+  </div></div>
+
+  <!-- ===== SECRETARIA DE SAÚDE MUNICIPAL ===== -->
+  <div id="tab-ssm" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:var(--verde)">🏥 Secretaria de Saúde Municipal</h3>
+      <button class="btn-pdf" onclick="pdfSSM()">🖨️ PDF</button>
+    </div>
+    <div class="dash-grid" id="stats-ssm"></div>
+    <div class="card">
+      <div class="card-header hdr-ssm"><h2>🏥 Registrar Notificação / Encaminhamento</h2></div>
+      <div class="card-body">
+        <div class="grid-form">
+          <div class="field" style="grid-column:span 2"><label>Paciente</label><select id="ssm-pac"></select></div>
+          <div class="field"><label>Data</label><input type="date" id="ssm-data"></div>
+          <div class="field"><label>Tipo de Notificação</label>
+            <select id="ssm-tipo">
+              <option value="Encaminhamento">Encaminhamento</option><option value="Notificação Compulsória">Notificação Compulsória</option>
+              <option value="Referência">Referência/Contrarreferência</option><option value="Regulação">Regulação de Leito</option>
+              <option value="Urgência">Urgência/Emergência</option>
+            </select>
+          </div>
+          <div class="field"><label>Serviço / Especialidade</label><input id="ssm-serv" placeholder="Ex: UPA, Hospital, Especialista"></div>
+          <div class="field" style="grid-column:span 2"><label>Motivo / CID</label><input id="ssm-motivo" placeholder="Motivo do encaminhamento / CID"></div>
+          <div class="field" style="grid-column:span 2"><label>Encaminhamento / Retorno</label><input id="ssm-encam" placeholder="Resultado do encaminhamento"></div>
+          <div class="field"><label>Data de Retorno</label><input type="date" id="ssm-retorno"></div>
+          <div class="field"><label>Status</label>
+            <select id="ssm-status">
+              <option value="pendente">⏳ Pendente</option><option value="agendado">📅 Agendado</option>
+              <option value="realizado">✅ Realizado</option><option value="cancelado">❌ Cancelado</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column:span 2"><label>Observações</label><textarea id="ssm-obs" style="height:50px;resize:none"></textarea></div>
+        </div>
+        <button class="btn btn-success" onclick="salvarSSM()">💾 Registrar Notificação</button>
+        <div class="msg ok" id="msg-ssm">✅ Registrado!</div>
+      </div>
+    </div>
+    <div class="tw">
+      <div class="tw-head">📋 Notificações — Sec. Saúde Municipal</div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Tipo</th><th>Serviço</th><th>Motivo</th><th>Encam.</th><th>Retorno</th><th>Status</th></tr></thead><tbody id="tbody-ssm"></tbody></table></div>
+    </div>
+  </div></div>
+
+  <!-- ===== ÓBITOS ===== -->
+  <div id="tab-obitos" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:#374151">⚫ Cadastro de Óbitos — Polo Base Guaíra</h3>
+      <button class="btn-pdf" onclick="pdfObitos()">🖨️ PDF</button>
+    </div>
+    <div class="dash-grid" id="stats-obitos"></div>
+    <div class="card">
+      <div class="card-header hdr-obito"><h2>⚫ Registrar Óbito</h2></div>
+      <div class="card-body">
+        <div class="sep">👤 Identificação do Falecido</div>
+        <div class="grid-form">
+          <div class="field" style="grid-column:span 2"><label>Nome do Falecido*</label><input id="ob-nome" placeholder="Nome completo" class="cinza-esc"></div>
+          <div class="field"><label>Data de Nascimento</label><input type="date" id="ob-nasc"></div>
+          <div class="field"><label>Sexo</label><select id="ob-sexo"><option value="M">Masculino</option><option value="F">Feminino</option></select></div>
+          <div class="field"><label>Idade ao Óbito</label><input type="number" min="0" id="ob-idade" class="cinza-esc"></div>
+          <div class="field"><label>Aldeia de Origem</label>
+            <select id="ob-aldeia">
+              <option value="">Selecione...</option>
+              <option value="Aldeia Guarani">Aldeia Guarani</option><option value="Aldeia Tekoha Porã">Aldeia Tekoha Porã</option>
+              <option value="Aldeia Taturi">Aldeia Taturi</option><option value="Aldeia Mirin">Aldeia Mirin</option>
+              <option value="Aldeia Tenonde Nhepyru">Aldeia Tenonde Nhepyru</option><option value="Aldeia Karumbey">Aldeia Karumbey</option>
+              <option value="Aldeia Marangatu">Aldeia Marangatu</option><option value="Aldeia Yvy Okaju">Aldeia Yvy Okaju</option>
+              <option value="Aldeia Guata Porã">Aldeia Guata Porã</option><option value="Aldeia Jevy">Aldeia Jevy</option>
+              <option value="Outra">Outra</option>
+            </select>
+          </div>
+          <div class="field"><label>Município</label>
+            <select id="ob-mun"><option value="Guaíra">Guaíra</option><option value="Terra Roxa">Terra Roxa</option><option value="Outro">Outro</option></select>
+          </div>
+        </div>
+        <div class="sep">📋 Causa e Local do Óbito</div>
+        <div class="grid-form">
+          <div class="field"><label>Data do Óbito*</label><input type="date" id="ob-data" class="alerta"></div>
+          <div class="field"><label>Categoria da Causa</label>
+            <select id="ob-cat" onchange="atualizarCausas()">
+              <option value="Doenças Infecciosas">🦠 Doenças Infecciosas</option><option value="Doenças Crônicas">💊 Doenças Crônicas</option>
+              <option value="Causas Externas">⚠️ Causas Externas</option><option value="Causas Maternas">🤰 Causas Maternas</option>
+              <option value="Causas Perinatais">👶 Causas Perinatais</option><option value="Neoplasias">🎗️ Neoplasias</option>
+              <option value="Saúde Mental">🧠 Saúde Mental</option><option value="Causas Mal Definidas">❓ Causas Mal Definidas</option>
+              <option value="Outras">📋 Outras</option>
+            </select>
+          </div>
+          <div class="field"><label>Causa do Óbito*</label><select id="ob-causa"><option value="">Selecione categoria</option></select></div>
+          <div class="field"><label>CID-10</label><input id="ob-cid" placeholder="Ex: J18.9" class="cinza-esc"></div>
+          <div class="field"><label>Local do Óbito</label>
+            <select id="ob-local">
+              <option value="Aldeia">Na Aldeia</option><option value="Hospital">Hospital</option>
+              <option value="UPA/UBS">UPA/UBS</option><option value="Via Pública">Via Pública</option>
+              <option value="CASAI">CASAI</option><option value="Outro">Outro</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column:span 2"><label>Observações</label><textarea id="ob-obs" style="height:50px;resize:none" placeholder="Circunstâncias, investigação..."></textarea></div>
+        </div>
+        <button class="btn" style="background:#374151;color:white" onclick="salvarObito()">💾 Registrar Óbito</button>
+        <div class="msg ok" id="msg-obito">✅ Registrado!</div>
+      </div>
+    </div>
+    <div class="tw">
+      <div class="tw-head" style="background:linear-gradient(135deg,#111827,#374151)">📋 Registro de Óbitos
+        <select id="filtro-obito" style="border:1.5px solid rgba(255,255,255,.3);border-radius:6px;background:rgba(255,255,255,.1);color:white;font-family:'Sora',sans-serif;font-size:.7rem;padding:4px 8px;outline:none" onchange="renderObitosTabela()">
+          <option value="todos">Todas as causas</option><option value="Causas Externas">Causas Externas</option>
+          <option value="Saúde Mental">Saúde Mental (Suicídio)</option><option value="Doenças Crônicas">Doenças Crônicas</option>
+          <option value="Doenças Infecciosas">Doenças Infecciosas</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Nome</th><th>Data Óbito</th><th>Aldeia</th><th>Sexo</th><th>Idade</th><th>Categoria</th><th>Causa</th><th>CID</th><th>Local</th></tr></thead><tbody id="tbody-obitos"></tbody></table></div>
+    </div>
+  </div></div>
+
+  <!-- ===== FARMÁCIA ===== -->
+  <div id="tab-farmacia" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:var(--verde)">💊 Farmácia — Estoque e Saídas</h3>
+      <button class="btn-pdf" onclick="exportFarmPDF()">🖨️ PDF Estoque</button>
+    </div>
+    <div class="info-box ib-amarelo">💊 Gerencie o estoque de medicamentos e registre saídas por categoria.</div>
+    <div class="card">
+      <div class="card-header hdr-farm"><h2>➕ Cadastrar Medicamento</h2></div>
+      <div class="card-body">
+        <div class="grid-form">
+          <div class="field" style="grid-column:span 2"><label>Nome</label><input id="farm-nome" placeholder="Ex: Paracetamol 500mg"></div>
+          <div class="field"><label>Categoria</label>
+            <select id="farm-cat">
+              <option value="Analgésicos/Antipiréticos">Analgésicos/Antipiréticos</option><option value="Antibióticos">Antibióticos</option>
+              <option value="Anti-hipertensivos">Anti-hipertensivos</option><option value="Antidiabéticos">Antidiabéticos</option>
+              <option value="Antiparasitários">Antiparasitários</option><option value="Vitaminas/Suplementos">Vitaminas/Suplementos</option>
+              <option value="Antiinflamatórios">Antiinflamatórios</option><option value="Psicotrópicos">Psicotrópicos</option>
+              <option value="Vacinas/Imunobiológicos">Vacinas/Imunobiológicos</option><option value="Materiais/Curativos">Materiais/Curativos</option>
+            </select>
+          </div>
+          <div class="field"><label>Unidade</label>
+            <select id="farm-unidade"><option value="comprimido">Comprimido</option><option value="frasco">Frasco</option><option value="ampola">Ampola</option><option value="caixa">Caixa</option><option value="unidade">Unidade</option></select>
+          </div>
+          <div class="field"><label>Qtd. Inicial</label><input type="number" min="0" id="farm-qtd-ini" value="0"></div>
+          <div class="field"><label>Qtd. Mínima (alerta)</label><input type="number" min="0" id="farm-qtd-min" value="10"></div>
+        </div>
+        <button class="btn btn-success btn-sm" onclick="cadastrarFarm()">➕ Cadastrar</button>
+        <div class="msg ok" id="msg-farm-cad">✅ Cadastrado!</div>
+      </div>
+    </div>
+    <div class="sep">📦 Estoque por Categoria</div>
+    <div id="estoque-grid"></div>
+    <div class="sep">📤 Registrar Saída de Medicamento</div>
+    <div class="card">
+      <div class="card-header hdr-farm"><h2>📤 Nova Saída</h2></div>
+      <div class="card-body">
+        <div class="grid-form">
+          <div class="field"><label>Medicamento</label><select id="farm-saida-id"></select></div>
+          <div class="field"><label>Quantidade</label><input type="number" min="1" id="farm-saida-qtd" value="1"></div>
+          <div class="field"><label>Paciente (opcional)</label><select id="farm-saida-pac"></select></div>
+          <div class="field"><label>Motivo</label><input id="farm-saida-motivo" placeholder="Prescrição/motivo"></div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="registrarSaidaFarm()">📤 Registrar Saída</button>
+        <div class="msg ok" id="msg-farm-saida">✅ Saída registrada!</div>
+      </div>
+    </div>
+    <div class="tw">
+      <div class="tw-head">📋 Histórico de Saídas</div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Medicamento</th><th>Qtd</th><th>Paciente</th><th>Motivo</th></tr></thead><tbody id="tbody-farm-saidas"></tbody></table></div>
+    </div>
+  </div></div>
+
+  <!-- ===== INSUMOS ===== -->
+  <div id="tab-insumos" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:var(--roxo)">🔬 Insumos Odontológicos</h3>
+      <button class="btn-pdf" onclick="exportInsPDF()">🖨️ PDF Insumos</button>
+    </div>
+    <div class="card">
+      <div class="card-header hdr-ins"><h2>➕ Cadastrar Insumo</h2></div>
+      <div class="card-body">
+        <div class="grid-form">
+          <div class="field" style="grid-column:span 2"><label>Nome</label><input id="ins-nome" placeholder="Ex: Resina Composta A2"></div>
+          <div class="field"><label>Categoria</label>
+            <select id="ins-cat">
+              <option value="Materiais Restauradores">Materiais Restauradores</option>
+              <option value="Anestésicos">Anestésicos</option>
+              <option value="Instrumentais">Instrumentais</option>
+              <option value="Proteção Individual (EPI)">EPI</option>
+              <option value="Descartáveis">Descartáveis</option>
+              <option value="Cirúrgicos">Cirúrgicos</option>
+              <option value="Higiene/Prevenção">Higiene/Prevenção</option>
+              <option value="Radiologia">Radiologia</option>
+              <option value="Prótese">Prótese</option>
+              <option value="Outros">Outros</option>
+            </select>
+          </div>
+          <div class="field"><label>Categoria Manual</label><input id="ins-cat-manual" placeholder="Ou digite uma categoria"></div>
+          <div class="field"><label>Unidade</label>
+            <select id="ins-unidade">
+              <option value="unidade">Unidade</option><option value="caixa">Caixa</option>
+              <option value="pacote">Pacote</option><option value="frasco">Frasco</option>
+              <option value="tubo">Tubo</option><option value="rolo">Rolo</option>
+            </select>
+          </div>
+          <div class="field"><label>Qtd. Inicial</label><input type="number" min="0" id="ins-qtd-ini" value="0"></div>
+          <div class="field"><label>Qtd. Mínima (alerta)</label><input type="number" min="0" id="ins-qtd-min" value="5"></div>
+        </div>
+        <button class="btn btn-success btn-sm" onclick="cadastrarIns()">➕ Cadastrar</button>
+        <div class="msg ok" id="msg-ins-cad">✅ Cadastrado!</div>
+      </div>
+    </div>
+    <div class="sep">📤 Registrar Saída de Insumo</div>
+    <div class="card">
+      <div class="card-header hdr-ins"><h2>📤 Nova Saída de Insumo</h2></div>
+      <div class="card-body">
+        <div class="grid-form">
+          <div class="field"><label>Insumo</label><select id="ins-saida-id"></select></div>
+          <div class="field"><label>Quantidade</label><input type="number" min="1" id="ins-saida-qtd" value="1"></div>
+          <div class="field"><label>Paciente (opcional)</label><select id="ins-saida-pac"></select></div>
+          <div class="field"><label>Motivo / Procedimento</label><input id="ins-saida-motivo" placeholder="Ex: Restauração, Extração..."></div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="registrarSaidaIns()">📤 Registrar Saída</button>
+        <div class="msg ok" id="msg-ins-saida">✅ Saída registrada!</div>
+      </div>
+    </div>
+    <div class="sep">📦 Estoque de Insumos por Categoria</div>
+    <div id="insumos-grid"></div>
+    <div class="tw" style="margin-top:12px">
+      <div class="tw-head">📋 Histórico de Saídas de Insumos</div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Insumo</th><th>Qtd</th><th>Paciente</th><th>Motivo</th></tr></thead><tbody id="tbody-ins-saidas"></tbody></table></div>
+    </div>
+  </div></div>
+
+  <!-- ===== EDUCAÇÃO EM SAÚDE ===== -->
+  <div id="tab-educacao" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:#0369a1">📢 Educação em Saúde — Atividades e Palestras</h3>
+      <button class="btn-pdf" onclick="pdfEducacao()">🖨️ PDF</button>
+    </div>
+    <div class="dash-grid" id="stats-educacao"></div>
+    <div class="card">
+      <div class="card-header" style="background:linear-gradient(135deg,#0c4a6e,#0369a1)"><h2>📢 Registrar Atividade / Palestra</h2></div>
+      <div class="card-body">
+        <div class="sep">📋 Identificação da Atividade</div>
+        <div class="grid-form">
+          <div class="field"><label>Data da Atividade</label><input type="date" id="edu-data"></div>
+          <div class="field"><label>Categoria</label>
+            <select id="edu-cat">
+              <option value="Saúde da Mulher">👩 Saúde da Mulher</option>
+              <option value="Saúde da Criança">👶 Saúde da Criança</option>
+              <option value="Saúde do Idoso">👴 Saúde do Idoso</option>
+              <option value="Saúde Mental">🧠 Saúde Mental</option>
+              <option value="Saúde Bucal">🦷 Saúde Bucal</option>
+              <option value="Alimentação Saudável">🥗 Alimentação Saudável</option>
+              <option value="Prevenção de DST/HIV">🎗️ Prevenção DST/HIV</option>
+              <option value="Outubro Rosa">🎀 Outubro Rosa</option>
+              <option value="Novembro Azul">🔵 Novembro Azul</option>
+              <option value="Setembro Amarelo">💛 Setembro Amarelo</option>
+              <option value="Janeiro Branco">⚪ Janeiro Branco</option>
+              <option value="Fevereiro Laranja">🟠 Fevereiro Laranja</option>
+              <option value="Março Lilás">🟣 Março Lilás (Endometriose)</option>
+              <option value="Abril Verde">🟢 Abril Verde</option>
+              <option value="Vacinação">💉 Campanha de Vacinação</option>
+              <option value="Higiene">🧼 Higiene e Prevenção</option>
+              <option value="Outras">📋 Outras</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column:span 2"><label>Tema / Título da Atividade</label><input id="edu-tema" placeholder="Ex: Prevenção de câncer de mama, Higiene bucal..."></div>
+        </div>
+        <div class="sep">📍 Local e Participantes</div>
+        <div class="grid-form">
+          <div class="field"><label>Local</label>
+            <select id="edu-local-sel" onchange="toggleEduLocal()">
+              <option value="Aldeia">🏘️ Aldeia</option>
+              <option value="Escola">🏫 Escola</option>
+              <option value="Polo Base">🏥 Polo Base</option>
+              <option value="UBS">🏨 UBS</option>
+              <option value="Online">💻 Online</option>
+              <option value="Outro">✏️ Outro (digitar)</option>
+            </select>
+          </div>
+          <div class="field" id="edu-local-manual-wrap" style="display:none"><label>Local Manual</label><input id="edu-local-manual" placeholder="Digite o local"></div>
+          <div class="field"><label>Aldeia / Bairro</label><input id="edu-aldeia" placeholder="Ex: Aldeia Tekoha Guarani"></div>
+          <div class="field"><label>Nº Participantes</label><input type="number" min="0" id="edu-participantes" placeholder="Ex: 45"></div>
+          <div class="field"><label>Público-alvo</label>
+            <select id="edu-publico">
+              <option value="Geral">Geral</option>
+              <option value="Crianças">Crianças (0–12a)</option>
+              <option value="Adolescentes">Adolescentes (13–17a)</option>
+              <option value="Mulheres">Mulheres</option>
+              <option value="Homens">Homens</option>
+              <option value="Idosos">Idosos (60+)</option>
+              <option value="Gestantes">Gestantes</option>
+              <option value="Pais e Responsáveis">Pais e Responsáveis</option>
+              <option value="Toda Comunidade">Toda a Comunidade</option>
+            </select>
+          </div>
+          <div class="field"><label>Responsável / Profissional</label><input id="edu-profissional" placeholder="Nome do profissional"></div>
+        </div>
+        <div class="sep">📅 Próxima Atividade</div>
+        <div class="grid-form">
+          <div class="field"><label>Data da Próxima Atividade</label><input type="date" id="edu-proxima"></div>
+          <div class="field" style="grid-column:span 2"><label>Tema da Próxima Atividade</label><input id="edu-prox-tema" placeholder="Tema previsto para a próxima atividade"></div>
+          <div class="field" style="grid-column:span 2"><label>Observações / Materiais Utilizados</label><textarea id="edu-obs" style="height:55px;resize:none" placeholder="Observações, materiais distribuídos, resultado..."></textarea></div>
+        </div>
+        <button class="btn btn-primary" style="background:#0369a1" onclick="salvarEducacao()">💾 Registrar Atividade</button>
+        <div class="msg ok" id="msg-edu">✅ Atividade registrada!</div>
+      </div>
+    </div>
+    <div class="tw">
+      <div class="tw-head" style="background:linear-gradient(135deg,#0c4a6e,#0369a1)">📋 Histórico de Atividades Educativas
+        <select id="filtro-edu-cat" style="border:1.5px solid rgba(255,255,255,.3);border-radius:6px;background:rgba(255,255,255,.1);color:white;font-family:'Sora',sans-serif;font-size:.7rem;padding:4px 8px;outline:none" onchange="renderEducacaoTabela()">
+          <option value="todos">Todas as categorias</option>
+          <option value="Saúde da Mulher">Saúde da Mulher</option>
+          <option value="Outubro Rosa">Outubro Rosa</option>
+          <option value="Setembro Amarelo">Setembro Amarelo</option>
+          <option value="Saúde Bucal">Saúde Bucal</option>
+          <option value="Saúde da Criança">Saúde da Criança</option>
+          <option value="Saúde do Idoso">Saúde do Idoso</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Categoria</th><th>Tema</th><th>Local</th><th>Aldeia</th><th>Público</th><th>Participantes</th><th>Profissional</th><th>Próxima</th></tr></thead><tbody id="tbody-edu"></tbody></table></div>
+    </div>
+  </div></div>
+
+  <!-- ===== CHAT EQUIPE ===== -->
+  <div id="tab-chat" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:var(--azul-escuro)">💬 Chat da Equipe — Tempo Real</h3>
+      <span id="chat-online-badge" style="background:#dcfce7;color:#166534;border-radius:20px;padding:3px 10px;font-size:.68rem;font-weight:700">👥 <span id="chat-online-count">0</span> online</span>
+    </div>
+    <div style="background:white;border-radius:var(--radius);box-shadow:var(--sombra);display:flex;flex-direction:column;height:500px">
+      <div id="chat-msgs" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px">
+        <div style="text-align:center;color:var(--cinza);font-size:.74rem;padding:20px">💬 Seja o primeiro a enviar uma mensagem para a equipe!</div>
+      </div>
+      <div style="border-top:1.5px solid var(--cinza-claro);padding:10px;display:flex;gap:8px;align-items:center">
+        <input id="chat-input" placeholder="Digite sua mensagem..." style="flex:1;border:1.5px solid var(--cinza-claro);border-radius:8px;padding:9px 12px;font-family:'Sora',sans-serif;font-size:.82rem;outline:none" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarChat();}">
+        <button class="btn btn-primary btn-sm" onclick="enviarChat()">📤 Enviar</button>
+      </div>
+    </div>
+    <div class="info-box ib-azul" style="margin-top:10px">💬 Mensagens visíveis apenas para profissionais conectados. Não substitui comunicação oficial.</div>
+  </div></div>
+
+  <!-- ===== RELATÓRIO ===== -->
+  <div id="tab-relatorio" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:.96rem;font-weight:800;color:var(--azul-escuro)">📄 Relatório Consolidado</h3>
+      <button class="btn btn-danger" onclick="gerarPDFCompleto()">🖨️ PDF Completo</button>
+    </div>
+    <div id="rel-conteudo"></div>
+  </div></div>
+
+  <!-- ===== USUÁRIOS (só admin) ===== -->
+  <div id="tab-usuarios" class="tab-content"><div class="main">
+    <div class="card">
+      <div class="card-header hdr-dash"><h2>⚙️ Cadastro de Profissionais</h2></div>
+      <div class="card-body">
+        <div class="info-box ib-azul">👤 Profissionais cadastrados aqui poderão acessar o sistema com e-mail e senha.</div>
+        <div class="grid-form">
+          <div class="field"><label>Nome</label><input id="nu-nome" placeholder="Nome completo"></div>
+          <div class="field"><label>E-mail</label><input type="email" id="nu-email"></div>
+          <div class="field"><label>Senha</label><input type="password" id="nu-senha" placeholder="Mín. 6 caracteres"></div>
+          <div class="field"><label>Cargo</label>
+            <select id="nu-tipo">
+              <option value="medico">🩺 Médico</option><option value="enfermeiro">👩‍⚕️ Enfermeiro(a)</option>
+              <option value="tecnico">💉 Técnico(a) de Enfermagem</option><option value="dentista">🦷 Cirurgião(ã) Dentista</option>
+              <option value="auxiliar_dentista">🦷 Auxiliar Dentista</option><option value="assistente_social">🤝 Assistente Social</option>
+              <option value="psicologo">🧠 Psicólogo(a)</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-success btn-sm" onclick="criarUsuario()">➕ Criar Profissional</button>
+        <div class="msg ok" id="msg-usuario">✅ Criado com sucesso!</div>
+      </div>
+    </div>
+    <div class="sep">👥 Equipe Cadastrada</div>
+    <div id="usuarios-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:16px"></div>
+  </div></div>
+
+  <!-- ===== MINHA PRODUÇÃO ===== -->
+  <div id="tab-minha-prod" class="tab-content"><div class="main"><div id="minha-prod-wrap"></div></div></div>
+
+  <!-- ===== PERFIL ===== -->
+  <div id="tab-perfil" class="tab-content"><div class="main">
+    <div class="card">
+      <div class="card-header hdr-rel"><h2>👤 Minha Foto de Perfil</h2></div>
+      <div class="card-body">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+          <div style="width:70px;height:70px;border-radius:50%;border:3px solid var(--azul-claro);overflow:hidden;background:var(--cinza-claro);display:flex;align-items:center;justify-content:center;font-size:28px" id="perfil-prev">👤</div>
+          <div>
+            <h4 style="font-size:.88rem;font-weight:800;color:var(--azul-escuro)">Foto de Perfil</h4>
+            <p style="font-size:.74rem;color:var(--cinza);margin-top:3px">Aparece no cabeçalho após o login.</p>
+            <label class="btn btn-primary btn-sm" style="margin-top:8px;cursor:pointer;display:inline-block">📷 Escolher
+              <input type="file" accept="image/*" style="display:none" onchange="uploadFoto(event)">
+            </label>
+          </div>
+        </div>
+        <div class="msg ok" id="msg-foto">✅ Foto atualizada!</div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<script>
+// ===================== DIAGNÓSTICO =====================
+function diag(msg,cor){
+  const el=document.getElementById('diag-log');
+  if(!el)return;
+  const d=document.createElement('div');
+  d.style.color=cor||'#0f0';
+  d.textContent=new Date().toLocaleTimeString()+' — '+msg;
+  el.appendChild(d);
+  el.scrollTop=el.scrollHeight;
+}
+window.onerror=function(msg,src,linha,col,err){
+  diag('❌ ERRO JS: '+msg+' (linha '+linha+')', '#f55');
+  return false;
+};
+window.addEventListener('unhandledrejection',function(e){
+  diag('❌ PROMISE REJEITADA: '+(e.reason?.message||e.reason||'desconhecido'),'#f55');
+});
+diag('✅ Script iniciando...','#ff0');
+
+// ===================== CONFIGURAÇÃO SUPABASE =====================
+const SB_URL='https://ljievfynpgahvmxvnkqa.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqaWV2ZnlucGdhaHZteHZua3FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MTczNzAsImV4cCI6MjA5MDI5MzM3MH0.4Jy5DUozw8FNBsw5tAHLKfPn0WtfqgNWN8F8SSnMbmg';
+const {createClient}=window.supabase||supabase;
+if(!createClient){document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:red;font-size:1.1rem">Erro: SDK Supabase não carregou. Verifique sua conexão e recarregue.</div>';throw new Error('SDK não carregou');}
+diag('🔌 Criando cliente Supabase...','#ff0');
+const sb=createClient(SB_URL,SB_KEY,{
+  realtime:{
+    params:{eventsPerSecond:10},
+    timeout:30000,
+    heartbeatIntervalMs:15000,
+    reconnectAfterMs:(tries)=>Math.min(tries*1000,10000)
+  },
+  global:{
+    headers:{'X-Client-Info':'emsi-polo-guaira/1.0'}
+  }
+});
+const ADMIN='clsipolobaseguaira@hotmail.com';
+const MN=['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+const CAUSAS_OBITO={
+  'Doenças Infecciosas':['Pneumonia','Tuberculose','Malária','Dengue','Covid-19','Hepatite','Diarréia/Desidratação','Sepse','Meningite','Outras Infecciosas'],
+  'Doenças Crônicas':['Insuficiência Cardíaca','AVC/Derrame','Infarto Agudo do Miocárdio','Diabetes Mellitus','Hipertensão','Insuficiência Renal','DPOC','Outras Crônicas'],
+  'Causas Externas':['Homicídio','Acidente de Trânsito','Afogamento','Acidente de Trabalho','Queda','Intoxicação Exógena','Outros Acidentes'],
+  'Causas Maternas':['Hemorragia Pós-parto','Eclâmpsia/Pré-eclâmpsia','Infecção Puerperal','Aborto Inseguro','Outras Causas Maternas'],
+  'Causas Perinatais':['Prematuridade','Asfixia Perinatal','Malformação Congênita','Sepse Neonatal','Outros Perinatais'],
+  'Neoplasias':['Câncer de Mama','Câncer de Colo Uterino','Câncer de Próstata','Câncer de Pulmão','Leucemia','Outros Cânceres'],
+  'Saúde Mental':['Suicídio','Intoxicação por Álcool','Overdose','Outras Causas SM'],
+  'Causas Mal Definidas':['Causa Indeterminada','Em Investigação'],
+  'Outras':['Outras Causas']
+};
+
+const CARGO_INFO={
+  medico:{l:'Médico',e:'🩺',c:'#0891b2',b:'badge-azul'},
+  enfermeiro:{l:'Enfermeiro(a)',e:'👩‍⚕️',c:'#166534',b:'badge-verde'},
+  tecnico:{l:'Técnico(a) Enf.',e:'💉',c:'#065f46',b:'badge-verde'},
+  dentista:{l:'Dentista',e:'🦷',c:'#5b21b6',b:'badge-roxo'},
+  auxiliar_dentista:{l:'Auxiliar Dentista',e:'🦷',c:'#7c3aed',b:'badge-roxo'},
+  assistente_social:{l:'Assistente Social',e:'🤝',c:'#c2410c',b:'badge-amarelo'},
+  psicologo:{l:'Psicólogo(a)',e:'🧠',c:'#6d28d9',b:'badge-roxo'}
+};
+
+// ===================== ESTADO GLOBAL =====================
+let usuarioAtual=null,perfilAtual=null,isAdmin=false,charts={};
+let pacientes=[];
+let vacinasPac=[],gestantes=[];
+let atendMed=[],atendOdo=[],atendNut=[],atendSoc=[];
+let saidasFarm=[],saidasIns=[],estoqueAtual=[],insumosAtual=[];
+let dadosMental=[],dadosCras=[],dadosCT=[],dadosSeg=[],dadosSSM=[],dadosObitos=[];
+let farmCatFiltro='todos',insCatFiltro='todos';
+let movFarmId='',movFarmTipo='',movInsId='',movInsTipo='';
+let pacSelecionadoModal=null;
+
+// ===================== UTILITÁRIOS =====================
+const gV=id=>document.getElementById(id)?.value||'';
+const setV=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||'';};
+function showMsg(id,tipo,dur=2500){const e=document.getElementById(id);if(!e)return;e.className='msg '+tipo;e.style.display='block';setTimeout(()=>e.style.display='none',dur);}
+function fecharModal(id){document.getElementById(id)?.classList.remove('open');}
+function calcIdade(nasc){if(!nasc)return'—';const d=new Date(),n=new Date(nasc);let a=d.getFullYear()-n.getFullYear(),m=d.getMonth()-n.getMonth();if(m<0||(m===0&&d.getDate()<n.getDate()))a--;return a<1?`${Math.floor((d-n)/2592000000)}m`:`${a}a`;}
+function fmtData(d){if(!d)return'—';const p=d.split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d;}
+
+// RELÓGIO
+function tick(){const n=new Date();const p=v=>String(v).padStart(2,'0');const s=`${p(n.getDate())}/${p(n.getMonth()+1)}/${n.getFullYear()} ${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;const e=document.getElementById('hclock');if(e)e.textContent=s;}
+setInterval(tick,1000);tick();
+
+// NOTIFICAÇÃO TEMPO REAL
+function mostrarNotif(msg,tipo='info'){
+  const c=document.getElementById('notif-container');if(!c)return;
+  const d=document.createElement('div');d.className='notif-item';
+  d.innerHTML=msg;c.appendChild(d);
+  setTimeout(()=>d.remove(),5000);
+}
+
+// CAUSA ÓBITO AUTO
+function atualizarCausas(){
+  const cat=gV('ob-cat');const sel=document.getElementById('ob-causa');if(!sel)return;
+  const causas=CAUSAS_OBITO[cat]||['Outras'];
+  sel.innerHTML=causas.map(c=>`<option value="${c}">${c}</option>`).join('');
+}
+
+// IMC AUTO
+function calcIMC(){
+  const p=parseFloat(document.getElementById('nut-peso')?.value)||0;
+  const a=parseFloat(document.getElementById('nut-altura')?.value)||0;
+  if(p>0&&a>0){const imc=p/((a/100)*(a/100));const v=imc.toFixed(1);document.getElementById('nut-imc').value=v;let cl='';if(imc<18.5)cl='Baixo Peso';else if(imc<25)cl='Eutrófico';else if(imc<30)cl='Sobrepeso';else if(imc<35)cl='Obesidade Grau I';else if(imc<40)cl='Obesidade Grau II';else cl='Obesidade Grau III';document.getElementById('nut-class-imc').value=cl;}
+}
+
+function mostrarRecuperarSenha(){document.getElementById('login-form').style.display='none';document.getElementById('recover-form').style.display='block';}
+function mostrarLogin(){document.getElementById('recover-form').style.display='none';document.getElementById('login-form').style.display='block';}
+async function recuperarSenha(){
+  const email=document.getElementById('inp-recover-email').value.trim();
+  const erro=document.getElementById('recover-erro');
+  const btn=document.getElementById('btn-recover');
+  if(!email){erro.textContent='Informe seu e-mail.';erro.style.display='block';return;}
+  btn.textContent='Enviando...';btn.disabled=true;
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
+  btn.textContent='📧 Enviar link de recuperação';btn.disabled=false;
+  if(error){erro.textContent='Erro: '+error.message;erro.style.display='block';erro.style.background='#fff5f5';erro.style.borderColor='var(--vermelho)';erro.style.color='var(--vermelho)';}
+  else{erro.textContent='✅ Link enviado! Verifique seu e-mail.';erro.style.display='block';erro.style.background='#f0fdf4';erro.style.borderColor='#6ee7b7';erro.style.color='#065f46';}
+}
+
+// ===================== AUTH =====================
+async function fazerLogin(){
+  const email=document.getElementById('inp-email').value.trim();
+  const senha=document.getElementById('inp-senha').value;
+  const btn=document.getElementById('btn-entrar');
+  const erro=document.getElementById('login-erro');
+  if(!email||!senha){erro.textContent='Preencha e-mail e senha.';erro.style.display='block';return;}
+  erro.style.display='none';btn.textContent='Conectando ao servidor...';btn.disabled=true;
+  erro.textContent='Aguarde...';erro.style.display='block';erro.style.color='#1a5ba0';erro.style.background='#eff6ff';erro.style.borderColor='#93c5fd';
+  diag('🔐 Tentando login: '+email,'#ff0');
+  try{
+    diag('📡 Chamando signInWithPassword...','#0ff');
+    const resultado=await sb.auth.signInWithPassword({email,password:senha});
+    diag('📥 Resposta recebida: error='+(resultado.error?.message||'nenhum'),'#0ff');
+    const data=resultado.data;
+    const error=resultado.error;
+    if(error){
+      let msg='Erro: '+error.message;
+      if(error.message.includes('Invalid login')||error.message.includes('invalid_credentials'))msg='E-mail ou senha incorretos.';
+      else if(error.message.includes('Email not confirmed'))msg='E-mail não confirmado. Verifique sua caixa de entrada.';
+      else if(error.message.includes('network')||error.message.includes('fetch'))msg='Erro de conexão. Verifique sua internet.';
+      erro.textContent=msg;erro.style.display='block';btn.textContent='Entrar';btn.disabled=false;return;
+    }
+    if(!data||!data.user){
+      erro.textContent='Não foi possível autenticar. Tente novamente.';erro.style.display='block';btn.textContent='Entrar';btn.disabled=false;return;
+    }
+    await iniciarApp(data.user);
+  }catch(e){
+    erro.textContent='Erro: '+(e.message||'Verifique sua internet e tente novamente.');
+    erro.style.display='block';
+    btn.textContent='Entrar';btn.disabled=false;
+  }
+}
+
+async function iniciarApp(user){
+  try{
+    usuarioAtual=user;
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app-screen').style.display='block';
+    isAdmin=user.email===ADMIN;
+
+    try{
+      const {data:perfil}=await sb.from('perfis_emsi').select('*').eq('user_id',user.id).single();
+      perfilAtual=perfil;
+    }catch(e){perfilAtual=null;}
+
+    try{await carregarFotoPerfil(user.id);}catch(e){}
+    document.getElementById('main-periodo').style.display='block';
+
+    if(isAdmin){
+      const huEl=document.getElementById('huser');if(huEl)huEl.textContent='👑 Coordenador';
+      document.getElementById('tabs-admin').style.display='flex';
+      const firstTab=document.querySelector('#tabs-admin .tab-btn');if(firstTab)firstTab.classList.add('active');
+      document.getElementById('tab-dash').classList.add('active');
+      try{carregarUsuarios();}catch(e){}
+    } else {
+      const info=CARGO_INFO[perfilAtual?.tipo]||{l:'Profissional',e:'👤'};
+      const huEl2=document.getElementById('huser');if(huEl2)huEl2.textContent=`${info.e} ${info.l} — ${perfilAtual?.nome||user.email}`;
+      document.getElementById('tabs-prof').style.display='flex';
+      const firstTab=document.querySelector('#tabs-prof .tab-btn');if(firstTab)firstTab.classList.add('active');
+      document.getElementById('tab-minha-prod').classList.add('active');
+      try{await renderMinhaProd();}catch(e){}
+    }
+
+    try{await carregarPacientes();}catch(e){}
+    try{await carregarTudo();}catch(e){}
+    try{await carregarFarm();}catch(e){}
+    try{await carregarInsumos(); renderSaidasIns();}catch(e){}
+    try{await carregarEducacao(); renderStatsEducacao(); renderEducacaoTabela();}catch(e){}
+    try{atualizarCausas();}catch(e){}
+    try{iniciarRealtime();}catch(e){}
+    try{iniciarChat();}catch(e){}
+    try{iniciarPresenca();}catch(e){}
+    try{monitorarConexao();}catch(e){}
+    try{monitorarVelocidade();}catch(e){}
+    try{iniciarAutoAtualizar();}catch(e){}
+    try{iniciarLembreteOlhos();}catch(e){}
+  }catch(e){
+    console.error('Erro iniciarApp:',e);
+    alert('Erro ao carregar o sistema. Tente recarregar a página.');
+  }
+}
+
+async function fazerLogout(){_rtAtivo=false;_rtLimparCanais();await sb.auth.signOut();location.reload();}
+sb.auth.getSession().then(({data})=>{
+  diag('🔑 Sessão verificada: '+(data?.session?.user?'usuário ativo':'sem sessão'),'#0ff');
+  if(data?.session?.user)iniciarApp(data.session.user);
+}).catch(e=>diag('❌ Erro getSession: '+e.message,'#f55'));
+
+// ===================== REALTIME =====================
+// Compatível com Cloudflare Pages — WebSocket com reconexão automática
+let _rtCanais=[];
+let _rtAtivo=false;
+let _rtReconectTimer=null;
+const _rtDotEl=()=>document.querySelector('.realtime-dot');
+const _rtBadgeEl=()=>document.querySelector('.realtime-badge');
+
+function _rtSetStatus(ok){
+  const dot=_rtDotEl();const badge=_rtBadgeEl();
+  if(dot)dot.style.background=ok?'#27a354':'#f59e0b';
+  if(badge)badge.style.borderColor=ok?'rgba(39,163,84,.4)':'rgba(245,158,11,.4)';
+}
+
+function _rtLimparCanais(){
+  _rtCanais.forEach(c=>{try{sb.removeChannel(c);}catch(e){}});
+  _rtCanais=[];
+}
+
+function iniciarRealtime(){
+  if(_rtAtivo)return;
+  _rtAtivo=true;
+  _registrarCanais();
+  // Verifica conexão a cada 30s e reconecta se necessário
+  setInterval(()=>{
+    const abertos=_rtCanais.filter(c=>c.state==='joined').length;
+    if(abertos===0&&_rtAtivo){
+      _rtSetStatus(false);
+      _rtLimparCanais();
+      setTimeout(_registrarCanais,2000);
+    }
+  },30000);
+}
+
+function _registrarCanais(){
+  _rtLimparCanais();
+  _rtSetStatus(false);
+
+  // ── Canal único para TODAS as tabelas (reduz conexões WebSocket) ──
+  const canalPrincipal = sb.channel('emsi-realtime-v2',{
+    config:{broadcast:{self:true},presence:{key:usuarioAtual?.id||'anon'}}
+  });
+
+  // Pacientes
+  canalPrincipal
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'pacientes'},payload=>{
+      const p=payload.new;
+      if(!pacientes.find(x=>x.id===p.id)){
+        pacientes.push(p);pacientes.sort((a,b)=>a.nome.localeCompare(b.nome));
+        renderPacientes();popularSelects();renderDashboard();
+        mostrarNotif(`👤 Novo paciente: <strong>${p.nome}</strong>`);
+      }
+    })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'pacientes'},payload=>{
+      const idx=pacientes.findIndex(x=>x.id===payload.new.id);
+      if(idx>=0){pacientes[idx]=payload.new;renderPacientes();popularSelects();}
+    })
+    .on('postgres_changes',{event:'DELETE',schema:'public',table:'pacientes'},payload=>{
+      pacientes=pacientes.filter(x=>x.id!==payload.old.id);
+      renderPacientes();popularSelects();renderDashboard();
+    });
+
+  // Atendimentos de saúde
+  ['atendimentos_medico','atendimentos_odonto','atendimentos_nutricao','atendimentos_social'].forEach(t=>{
+    canalPrincipal.on('postgres_changes',{event:'INSERT',schema:'public',table:t},payload=>{
+      const p=pacientes.find(x=>x.id===payload.new.paciente_id);
+      const nomeTab={atendimentos_medico:'Médico',atendimentos_odonto:'Odonto',atendimentos_nutricao:'Nutrição',atendimentos_social:'Social'};
+      mostrarNotif(`📋 Novo atend. <strong>${nomeTab[t]||t}</strong>${p?' — '+p.nome:''}`);
+      carregarTudo();
+    });
+  });
+
+  // Módulos intersetoriais
+  ['saude_mental_pac','cras_creas','conselho_tutelar','seguranca_publica','sec_saude_municipal','obitos'].forEach(t=>{
+    canalPrincipal.on('postgres_changes',{event:'INSERT',schema:'public',table:t},()=>{
+      carregarTudo();
+    });
+  });
+
+  // Estoque
+  canalPrincipal.on('postgres_changes',{event:'*',schema:'public',table:'estoque_farm'},()=>{
+    carregarFarm();
+  });
+
+  // Insumos
+  canalPrincipal.on('postgres_changes',{event:'*',schema:'public',table:'insumos_odonto'},()=>{
+    carregarInsumos();renderSaidasIns();
+  });
+
+  // Educação em Saúde
+  canalPrincipal.on('postgres_changes',{event:'INSERT',schema:'public',table:'educacao_saude'},()=>{
+    carregarEducacao().then(()=>{renderEducacaoTabela();renderStatsEducacao();});
+  });
+
+  // Inscreve e trata status
+  canalPrincipal.subscribe((status,err)=>{
+    if(status==='SUBSCRIBED'){
+      _rtSetStatus(true);
+      mostrarNotif('🟢 Conectado em tempo real');
+    } else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
+      _rtSetStatus(false);
+      // Tenta reconectar após 5s
+      clearTimeout(_rtReconectTimer);
+      _rtReconectTimer=setTimeout(()=>{
+        if(_rtAtivo){_rtLimparCanais();_registrarCanais();}
+      },5000);
+    }
+  });
+
+  _rtCanais.push(canalPrincipal);
+}
+
+// ===================== TABS =====================
+function st(id,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  const t=document.getElementById('tab-'+id);if(t)t.classList.add('active');
+  if(btn)btn.classList.add('active');
+}
+
+// ===================== FOTO PERFIL =====================
+async function carregarFotoPerfil(uid){
+  const {data}=await sb.from('perfis_fotos').select('foto_url').eq('user_id',uid).single();
+  if(data?.foto_url){
+    const fw=document.getElementById('hfoto');if(fw)fw.innerHTML=`<img src="${data.foto_url}">`;
+    const pp=document.getElementById('perfil-prev');if(pp)pp.innerHTML=`<img src="${data.foto_url}" style="width:100%;height:100%;object-fit:cover">`;
+  }
+}
+async function uploadFoto(event){
+  const file=event.target.files[0];if(!file)return;
+  const ext=file.name.split('.').pop();
+  const path=`${usuarioAtual.id}/perfil.${ext}`;
+  const {error}=await sb.storage.from('fotos-perfil').upload(path,file,{upsert:true});
+  if(error){alert('Erro: '+error.message);return;}
+  const {data:ud}=sb.storage.from('fotos-perfil').getPublicUrl(path);
+  await sb.from('perfis_fotos').upsert({user_id:usuarioAtual.id,foto_url:ud.publicUrl,atualizado_em:new Date().toISOString()},{onConflict:'user_id'});
+  await carregarFotoPerfil(usuarioAtual.id);
+  showMsg('msg-foto','ok');
+}
+
+// ===================== PACIENTES (COMPARTILHADO) =====================
+// Pacientes são globais — sem filtro por user_id
+async function carregarPacientes(){
+  const {data}=await sb.from('pacientes').select('*').order('nome');
+  pacientes=data||[];
+  renderPacientes();popularSelects();
+}
+
+function renderPacientes(){
+  const busca=(document.getElementById('busca-pac')?.value||'').toLowerCase();
+  const lista=pacientes.filter(p=>p.nome.toLowerCase().includes(busca)||(p.cpf||'').includes(busca)||(p.cartao_sus||'').includes(busca));
+  const el=document.getElementById('lista-pacientes');if(!el)return;
+  if(lista.length===0){el.innerHTML='<div class="info-box ib-azul">Nenhum paciente cadastrado ainda.</div>';return;}
+  el.innerHTML=lista.map(p=>{
+    const idade=p.data_nascimento?calcIdade(p.data_nascimento):'—';
+    const quemCad=p.cadastrado_por_nome?`<span class="badge badge-cinza">📝 ${p.cadastrado_por_nome}</span>`:'';
+    return `<div class="pac-card">
+      <div class="pac-avatar">${p.sexo==='F'?'👩':'👤'}</div>
+      <div style="flex:1">
+        <div class="pac-nome">${p.nome}</div>
+        <div class="pac-sub">CPF: ${p.cpf||'—'} · SUS: ${p.cartao_sus||'—'} · ${idade}</div>
+        <div class="pac-tags">
+          ${p.aldeia?`<span class="badge badge-azul">${p.aldeia}</span>`:''}
+          ${p.etnia?`<span class="badge badge-verde">${p.etnia}</span>`:''}
+          ${quemCad}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <button class="btn btn-primary btn-sm" onclick="editarPaciente('${p.id}')">✏️ Editar</button>
+        ${isAdmin?`<button class="btn btn-danger btn-sm" onclick="excluirPaciente('${p.id}')">🗑️ Excluir</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filtrarPacientes(){renderPacientes();}
+
+function popularSelects(){
+  // Todos os selects de paciente em todas as abas
+  const sels=['nova-vac-pac','gest-pac-sel','med-pac-sel','odo-pac-sel','nut-pac-sel','soc-pac-sel','sm-pac','cras-pac','ct-pac','seg-pac','ssm-pac','farm-saida-pac'];
+  const opts=pacientes.length?pacientes.map(p=>`<option value="${p.id}">${p.nome}${p.aldeia?' — '+p.aldeia:''}</option>`).join(''):'<option value="">— Cadastre pacientes primeiro —</option>';
+  sels.forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+}
+
+function abrirModalPac(id=null){
+  pacSelecionadoModal=id;
+  document.getElementById('modal-pac-titulo').textContent=id?'✏️ Editar Paciente':'👤 Cadastrar Paciente';
+  if(id){const p=pacientes.find(x=>x.id===id);if(p){setV('mp-nome',p.nome);setV('mp-cpf',p.cpf);setV('mp-sus',p.cartao_sus);setV('mp-nasc',p.data_nascimento);setV('mp-sexo',p.sexo);setV('mp-mae',p.nome_mae);setV('mp-tel',p.telefone);setV('mp-aldeia',p.aldeia);setV('mp-etnia',p.etnia);}}
+  else{['mp-nome','mp-cpf','mp-sus','mp-nasc','mp-mae','mp-tel','mp-aldeia','mp-etnia'].forEach(id=>setV(id,''));setV('mp-sexo','');}
+  document.getElementById('modal-pac').classList.add('open');
+}
+function editarPaciente(id){abrirModalPac(id);}
+
+async function salvarPaciente(){
+  const nome=gV('mp-nome');
+  if(!nome){alert('Informe o nome do paciente.');return;}
+
+  // Verificar duplicidade de nome (case insensitive)
+  if(!pacSelecionadoModal){
+    const duplic=pacientes.find(p=>p.nome.toLowerCase()===nome.toLowerCase());
+    if(duplic){
+      document.getElementById('msg-pac-dup').style.display='block';
+      setTimeout(()=>document.getElementById('msg-pac-dup').style.display='none',3000);
+      return;
+    }
+  }
+
+  const nomeProf=perfilAtual?.nome||usuarioAtual?.email||'Desconhecido';
+
+  // Dados base sem cadastrado_por (usado só no insert)
+  const dadosBase={
+    nome,cpf:gV('mp-cpf'),cartao_sus:gV('mp-sus'),
+    data_nascimento:gV('mp-nasc')||null,sexo:gV('mp-sexo'),
+    nome_mae:gV('mp-mae'),telefone:gV('mp-tel'),
+    aldeia:gV('mp-aldeia'),etnia:gV('mp-etnia')
+  };
+
+  let error;
+  if(pacSelecionadoModal){
+    // Edição: não atualiza cadastrado_por
+    const r=await sb.from('pacientes').update(dadosBase).eq('id',pacSelecionadoModal);
+    error=r.error;
+  } else {
+    // Novo cadastro: inclui quem cadastrou
+    const dadosInsert={...dadosBase,cadastrado_por:usuarioAtual.id,cadastrado_por_nome:nomeProf};
+    const r=await sb.from('pacientes').insert(dadosInsert);
+    error=r.error;
+  }
+
+  if(!error){showMsg('msg-pac-modal','ok');await carregarPacientes();setTimeout(()=>fecharModal('modal-pac'),1500);}
+  else alert('Erro: '+error.message);
+}
+
+async function excluirPaciente(id){
+  const pac=pacientes.find(p=>p.id===id);
+  if(!pac)return;
+  if(!confirm(`⚠️ Tem certeza que deseja EXCLUIR o paciente "${pac.nome}"?\n\nEsta ação não pode ser desfeita.`))return;
+  const {error}=await sb.from('pacientes').delete().eq('id',id);
+  if(!error){
+    pacientes=pacientes.filter(p=>p.id!==id);
+    renderPacientes();popularSelects();renderDashboard();
+    mostrarNotif(`🗑️ Paciente <strong>${pac.nome}</strong> excluído.`);
+  } else alert('Erro ao excluir: '+error.message);
+}
+
+// ===================== CARREGAR TUDO =====================
+async function carregarTudo(){
+  await Promise.all([
+    carregarVacinasPac(),carregarGestantes(),
+    carregarAtend('medico'),carregarAtend('odonto'),
+    carregarAtend('nutricao'),carregarAtend('social'),
+    carregarModulo('saude_mental_pac','dadosMental'),
+    carregarModulo('cras_creas','dadosCras'),
+    carregarModulo('conselho_tutelar','dadosCT'),
+    carregarModulo('seguranca_publica','dadosSeg'),
+    carregarModulo('sec_saude_municipal','dadosSSM'),
+    carregarModulo('obitos','dadosObitos','criado_em'),
+    carregarSaidasFarm()
+  ]);
+  renderDashboard();
+  renderVacinasPacientes();renderGestantes();
+  renderAtendimentos('medico');renderAtendimentos('odonto');
+  renderAtendimentos('nutricao');renderAtendimentos('social');
+  renderMentalTabela();renderMentalPsico();renderMentalSuicidio();
+  renderCrasTabela();renderCTTabela();renderSegTabela();renderSSMTabela();renderObitosTabela();
+  renderSaidasFarm();renderRelatorio();
+}
+
+// ===================== MÓDULOS INTERSETORIAIS =====================
+async function carregarModulo(tabela,varName,orderCol='data_atendimento'){
+  let query=sb.from(tabela).select('*').order(orderCol,{ascending:false});
+  // Restrição por setor: profissionais veem apenas seus próprios registros
+  if(!isAdmin){
+    query=query.eq('user_id',usuarioAtual.id);
+  }
+  const {data}=await query;
+  if(varName==='dadosMental')dadosMental=data||[];
+  else if(varName==='dadosCras')dadosCras=data||[];
+  else if(varName==='dadosCT')dadosCT=data||[];
+  else if(varName==='dadosSeg')dadosSeg=data||[];
+  else if(varName==='dadosSSM')dadosSSM=data||[];
+  else if(varName==='dadosObitos')dadosObitos=data||[];
+}
+
+// ===================== DASHBOARD =====================
+function renderDashboard(){
+  // Stats Saúde
+  const statsS=[
+    {l:'Total Pacientes',v:pacientes.length,t:'',i:'👥'},
+    {l:'Vacinas Atrasadas',v:vacinasPac.filter(v=>v.status==='atrasada'||(!v.data_aplicada&&v.data_prevista&&new Date(v.data_prevista)<new Date())).length,t:'alerta',i:'⚠️'},
+    {l:'Gestantes',v:gestantes.length,t:'rosa',i:'🤰'},
+    {l:'Atend. Médico',v:atendMed.length,t:'',i:'🩺'},
+    {l:'Atend. Odonto',v:atendOdo.length,t:'roxo',i:'🦷'},
+    {l:'Atend. Nutrição',v:atendNut.length,t:'verde',i:'🥦'},
+    {l:'Atend. Social',v:atendSoc.length,t:'aviso',i:'🤝'},
+    {l:'Estoque Crítico',v:estoqueAtual.filter(f=>f.quantidade_atual<=f.quantidade_minima).length,t:'alerta',i:'💊'},
+  ];
+  const elS=document.getElementById('stats-saude');
+  if(elS)elS.innerHTML=statsS.map(s=>`<div class="stat ${s.t}"><div style="font-size:1.1rem;margin-bottom:2px">${s.i}</div><div class="stat-n">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
+
+  // Stats Intersetoriais
+  const statsI=[
+    {l:'Atend. Mental',v:dadosMental.length,t:'roxo',i:'🧠'},
+    {l:'Psicotrópicos',v:dadosMental.filter(r=>r.usa_psicotropico).length,t:'amarelo',i:'💊'},
+    {l:'Risco Alto',v:dadosMental.filter(r=>r.risco_suicidio==='alto'||r.risco_suicidio==='iminente').length,t:'alerta',i:'🔴'},
+    {l:'Tent. Suicídio',v:dadosMental.filter(r=>r.tentativa_suicidio).length,t:'alerta',i:'🆘'},
+    {l:'Atend. CRAS',v:dadosCras.length,t:'teal',i:'🏛️'},
+    {l:'Ocorr. CT',v:dadosCT.length,t:'aviso',i:'👨‍⚖️'},
+    {l:'Ocorr. Seg.',v:dadosSeg.length,t:'cinza-esc',i:'🚔'},
+    {l:'Óbitos',v:dadosObitos.length,t:'cinza-esc',i:'⚫'},
+  ];
+  const elI=document.getElementById('stats-inter');
+  if(elI)elI.innerHTML=statsI.map(s=>`<div class="stat ${s.t}"><div style="font-size:1.1rem;margin-bottom:2px">${s.i}</div><div class="stat-n">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
+
+  // Alertas
+  const vacAtrasadas=vacinasPac.filter(v=>v.status==='atrasada'||(v.status!=='aplicada'&&v.data_prevista&&new Date(v.data_prevista)<new Date())).length;
+  const alertV=document.getElementById('alerta-vacinas');
+  if(alertV)alertV.innerHTML=vacAtrasadas>=5?`<div class="alert-banner"><div class="alert-icon">🚨</div><div><h3>⚠️ ALERTA: ${vacAtrasadas} crianças com vacinas em atraso!</h3><p>Verificar urgentemente o calendário vacinal.</p></div></div>`:'';
+  
+  const tentativas=dadosMental.filter(r=>r.tentativa_suicidio).length;
+  const alertM=document.getElementById('alerta-suicidio');
+  if(alertM)alertM.innerHTML=tentativas>0?`<div class="alert-banner"><div class="alert-icon">🆘</div><div><h3>⚠️ ${tentativas} caso(s) de tentativa de suicídio registrado(s)!</h3><p>Ativar protocolo de crise e acionar rede de proteção imediatamente.</p></div></div>`:'';
+
+  renderCharts();
+}
+
+function renderCharts(){
+  const mkChart=(id,type,labels,datasets,opts={})=>{
+    const el=document.getElementById(id);if(!el)return;
+    if(charts[id])charts[id].destroy();
+    charts[id]=new Chart(el,{type,data:{labels,datasets},options:{responsive:true,plugins:{legend:{display:true,labels:{font:{size:10}}}},scales:type==='bar'?{y:{beginAtZero:true,ticks:{font:{size:10}}},x:{ticks:{font:{size:10}}}}:{},...opts}});
+  };
+
+  // Vacinação
+  const vAplic=vacinasPac.filter(v=>v.status==='aplicada').length;
+  const vPend=vacinasPac.filter(v=>v.status==='pendente').length;
+  const vAtr=vacinasPac.filter(v=>v.status==='atrasada').length;
+  mkChart('cVac','doughnut',['Aplicadas','Pendentes','Atrasadas'],[{data:[vAplic,vPend,vAtr],backgroundColor:['#27a354','#f59e0b','#c0392b']}]);
+
+  // Gestantes por risco
+  const gAlt=gestantes.filter(g=>g.risco==='alto').length;
+  const gMed=gestantes.filter(g=>g.risco==='medio').length;
+  const gBx=gestantes.filter(g=>!g.risco||g.risco==='baixo').length;
+  mkChart('cGest','doughnut',['Alto Risco','Médio Risco','Baixo Risco'],[{data:[gAlt,gMed,gBx],backgroundColor:['#c0392b','#f59e0b','#27a354']}]);
+
+  // Atendimentos por área
+  mkChart('cAtend','bar',['Médico','Odonto','Nutrição','Social','Mental','CRAS'],[{label:'Atendimentos',data:[atendMed.length,atendOdo.length,atendNut.length,atendSoc.length,dadosMental.length,dadosCras.length],backgroundColor:['#1a5ba0','#6d28d9','#27a354','#e07b39','#7c3aed','#0369a1']}]);
+
+  // Estoque crítico
+  const criticos=estoqueAtual.filter(f=>f.quantidade_atual<=f.quantidade_minima).slice(0,6);
+  if(criticos.length)mkChart('cFarm','bar',criticos.map(f=>f.nome.substring(0,12)+'…'),[{label:'Qtd Atual',data:criticos.map(f=>f.quantidade_atual),backgroundColor:'#c0392b'}]);
+
+  // Mental
+  const tiposMental=[...new Set(dadosMental.map(r=>r.tipo_atendimento))];
+  mkChart('cMental','bar',tiposMental,[{label:'Atendimentos',data:tiposMental.map(t=>dadosMental.filter(r=>r.tipo_atendimento===t).length),backgroundColor:'#6d28d9'}]);
+
+  // Óbitos por categoria
+  const catObitos=[...new Set(dadosObitos.map(o=>o.categoria_causa))];
+  mkChart('cObitos','doughnut',catObitos,[{data:catObitos.map(c=>dadosObitos.filter(o=>o.categoria_causa===c).length),backgroundColor:['#374151','#c0392b','#f59e0b','#7c3aed','#0369a1','#27a354','#be185d','#e07b39']}]);
+
+  // CRAS demandas
+  const tipoCras=[...new Set(dadosCras.map(r=>r.tipo_demanda))].slice(0,6);
+  mkChart('cCras','bar',tipoCras,[{label:'Casos',data:tipoCras.map(t=>dadosCras.filter(r=>r.tipo_demanda===t).length),backgroundColor:'#0369a1'}]);
+
+  // Segurança
+  const tipoSeg=[...new Set(dadosSeg.map(r=>r.tipo_ocorrencia))].slice(0,6);
+  mkChart('cSeg','bar',tipoSeg,[{label:'Ocorrências',data:tipoSeg.map(t=>dadosSeg.filter(r=>r.tipo_ocorrencia===t).length),backgroundColor:'#44403c'}]);
+}
+
+// ===================== VACINAS =====================
+async function carregarVacinasPac(){
+  const {data}=await sb.from('vacinas_paciente').select('*').order('data_prevista');
+  vacinasPac=data||[];
+  verificarAlertaVacinas();
+}
+function verificarAlertaVacinas(){
+  const hoje=new Date();
+  const atrasadas=vacinasPac.filter(v=>v.status!=='aplicada'&&v.data_prevista&&new Date(v.data_prevista)<hoje);
+  const el=document.getElementById('alerta-vacinas-tab');
+  if(el)el.innerHTML=atrasadas.length>=5?`<div class="alert-banner"><div class="alert-icon">🚨</div><div><h3>⚠️ ALERTA: ${atrasadas.length} vacinas em atraso!</h3><p>Verificar urgentemente o calendário vacinal.</p></div></div>`:'';
+}
+function renderVacinasPacientes(){
+  const filtro=document.getElementById('filtro-vac-status')?.value||'todos';
+  const hoje=new Date();
+  let lista=vacinasPac.map(v=>{
+    const pac=pacientes.find(p=>p.id===v.paciente_id);
+    let status=v.status||'pendente';
+    if(status!=='aplicada'&&v.data_prevista&&new Date(v.data_prevista)<hoje)status='atrasada';
+    return {...v,_pac:pac,_status:status};
+  });
+  if(filtro!=='todos')lista=lista.filter(v=>v._status===filtro);
+  const tbody=document.getElementById('tbody-vacinas');if(!tbody)return;
+  tbody.innerHTML=lista.map(v=>`<tr>
+    <td style="font-weight:700">${v._pac?.nome||'—'}</td>
+    <td>${v._pac?.data_nascimento?calcIdade(v._pac.data_nascimento):'—'}</td>
+    <td>${v.vacina||'—'}</td>
+    <td>${v.categoria||'—'}</td>
+    <td>${fmtData(v.data_prevista)}</td>
+    <td class="${v.data_aplicada?'ok':'zero'}">${fmtData(v.data_aplicada)||'—'}</td>
+    <td class="${v._status==='aplicada'?'ok':v._status==='atrasada'?'alerta':'aviso'}">${v._status==='aplicada'?'✅ Aplicada':v._status==='atrasada'?'⚠️ Atrasada':'⏳ Pendente'}</td>
+    <td>${v.lote||'—'}</td>
+    <td><button class="btn btn-primary btn-sm" onclick="marcarVacinaAplicada('${v.id}')">✅ Aplicar</button></td>
+  </tr>`).join('');
+  // Stats
+  const el=document.getElementById('stats-vacinas');
+  if(el)el.innerHTML=[
+    {l:'Total',v:vacinasPac.length,t:'',i:'💉'},
+    {l:'Aplicadas',v:vacinasPac.filter(v=>v.status==='aplicada').length,t:'verde',i:'✅'},
+    {l:'Pendentes',v:vacinasPac.filter(v=>v.status==='pendente').length,t:'aviso',i:'⏳'},
+    {l:'Atrasadas',v:vacinasPac.filter(v=>v.status==='atrasada').length,t:'alerta',i:'⚠️'},
+  ].map(s=>`<div class="stat ${s.t}"><div style="font-size:1.1rem;margin-bottom:2px">${s.i}</div><div class="stat-n">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
+}
+function abrirModalVacPac(){document.getElementById('modal-vac-pac').classList.add('open');}
+async function salvarVacPac(){
+  const pac=gV('nova-vac-pac');if(!pac){alert('Selecione o paciente.');return;}
+  const dados={paciente_id:pac,vacina:gV('mvp-vacina'),categoria:gV('mvp-cat'),status:gV('mvp-status'),data_prevista:gV('mvp-prevista')||null,data_aplicada:gV('mvp-aplicada')||null,lote:gV('mvp-lote'),user_id:usuarioAtual.id};
+  const {error}=await sb.from('vacinas_paciente').insert(dados);
+  if(!error){showMsg('msg-vac-pac','ok');await carregarVacinasPac();renderVacinasPacientes();setTimeout(()=>fecharModal('modal-vac-pac'),1500);}
+  else alert('Erro: '+error.message);
+}
+async function marcarVacinaAplicada(id){
+  const {error}=await sb.from('vacinas_paciente').update({status:'aplicada',data_aplicada:new Date().toISOString().split('T')[0]}).eq('id',id);
+  if(!error){await carregarVacinasPac();renderVacinasPacientes();}
+}
+
+// ===================== GESTANTES =====================
+async function carregarGestantes(){
+  const {data}=await sb.from('gestantes').select('*').order('data_dum');
+  gestantes=data||[];
+}
+async function carregarDadosGestante(){
+  const pacId=gV('gest-pac-sel');if(!pacId)return;
+  const g=gestantes.find(x=>x.paciente_id===pacId);
+  const wrap=document.getElementById('gest-form-wrap');if(!wrap)return;
+  wrap.innerHTML=`<div class="grid-form">
+    <div class="field"><label>DUM</label><input type="date" id="g-dum" value="${g?.data_dum||''}"></div>
+    <div class="field"><label>DPP</label><input type="date" id="g-dpp" value="${g?.dpp||''}"></div>
+    <div class="field"><label>Mês Gestação</label><input type="number" min="1" max="9" id="g-mes" value="${g?.mes_gestacao||''}"></div>
+    <div class="field"><label>Risco</label><select id="g-risco"><option value="baixo"${g?.risco==='baixo'?' selected':''}>Baixo</option><option value="medio"${g?.risco==='medio'?' selected':''}>Médio</option><option value="alto"${g?.risco==='alto'?' selected':''}>Alto</option></select></div>
+    <div class="field"><label>Peso (kg)</label><input type="number" step="0.1" id="g-peso" value="${g?.peso||''}"></div>
+    <div class="field"><label>Pressão Arterial</label><input id="g-pa" value="${g?.pressao||''}" placeholder="Ex: 120/80"></div>
+    <div class="field"><label>Pré-natal Nº</label><input type="number" min="1" id="g-prenatal" value="${g?.prenatal_num||''}"></div>
+    <div class="field"><label>Vacinação</label><input id="g-vac" value="${g?.vacinacao||''}" placeholder="Ex: dT, Influenza"></div>
+    <div class="field" style="grid-column:span 2"><label>Observações</label><input id="g-obs" value="${g?.observacoes||''}"></div>
+  </div>
+  <button class="btn btn-primary" onclick="salvarGestante()">💾 Salvar</button>
+  <div class="msg ok" id="msg-gest">✅ Salvo!</div>`;
+}
+async function salvarGestante(){
+  const pacId=gV('gest-pac-sel');if(!pacId)return;
+  const dados={paciente_id:pacId,data_dum:gV('g-dum')||null,dpp:gV('g-dpp')||null,mes_gestacao:parseInt(gV('g-mes'))||null,risco:gV('g-risco'),peso:parseFloat(gV('g-peso'))||null,pressao:gV('g-pa'),prenatal_num:parseInt(gV('g-prenatal'))||null,vacinacao:gV('g-vac'),observacoes:gV('g-obs'),user_id:usuarioAtual.id};
+  const exists=gestantes.find(x=>x.paciente_id===pacId);
+  let error;
+  if(exists){const r=await sb.from('gestantes').update(dados).eq('id',exists.id);error=r.error;}
+  else{const r=await sb.from('gestantes').insert(dados);error=r.error;}
+  if(!error){showMsg('msg-gest','ok');await carregarGestantes();renderGestantes();}
+  else alert('Erro: '+error.message);
+}
+function renderGestantes(){
+  const tbody=document.getElementById('tbody-gest');if(!tbody)return;
+  tbody.innerHTML=gestantes.map(g=>{
+    const pac=pacientes.find(p=>p.id===g.paciente_id);
+    const rc=g.risco==='alto'?'alerta':g.risco==='medio'?'aviso':'ok';
+    return `<tr><td style="font-weight:700">${pac?.nome||'—'}</td><td>${pac?.aldeia||'—'}</td><td>${g.mes_gestacao||'—'}º</td><td>${fmtData(g.dpp)}</td><td class="${rc}">${g.risco||'—'}</td><td>${g.prenatal_num||'—'}</td><td>${g.peso||'—'}</td><td>${g.pressao||'—'}</td><td>${g.vacinacao||'—'}</td></tr>`;
+  }).join('');
+  if(!gestantes.length)tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--cinza);padding:14px">Nenhuma gestante registrada.</td></tr>';
+  const el=document.getElementById('stats-gest');
+  if(el)el.innerHTML=[
+    {l:'Total',v:gestantes.length,t:'rosa',i:'🤰'},
+    {l:'Alto Risco',v:gestantes.filter(g=>g.risco==='alto').length,t:'alerta',i:'🔴'},
+    {l:'Médio Risco',v:gestantes.filter(g=>g.risco==='medio').length,t:'aviso',i:'🟠'},
+    {l:'Baixo Risco',v:gestantes.filter(g=>g.risco==='baixo').length,t:'verde',i:'🟢'},
+  ].map(s=>`<div class="stat ${s.t}"><div style="font-size:1.1rem;margin-bottom:2px">${s.i}</div><div class="stat-n">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
+}
+
+// ===================== ATENDIMENTOS (Médico/Odonto/Nutrição/Social) =====================
+const CFG_ATEND={
+  medico:{tbl:'atendimentos_medico',var:'atendMed',campos:['queixa','diagnostico','cid10','conduta','encaminhamento','data_retorno'],ids:['med-queixa','med-diag','med-cid','med-conduta','med-encam','med-retorno'],pacSel:'med-pac-sel',dataId:'med-data',tbody:'tbody-med',msg:'msg-med',cols:['Data','Paciente','Queixa','Diagnóstico','CID','Conduta','Encam.','Retorno'],cargo:['medico','enfermeiro','tecnico']},
+  odonto:{tbl:'atendimentos_odonto',var:'atendOdo',campos:['tipo_atendimento','procedimento','dente_regiao','tema_atividade','local_atividade','num_participantes','observacoes','data_retorno'],ids:['odo-tipo','odo-proc','odo-dente','odo-tema','odo-local','odo-participantes','odo-obs','odo-retorno'],pacSel:'odo-pac-sel',dataId:'odo-data',tbody:'tbody-odo',msg:'msg-odo',cols:['Data','Paciente','Tipo','Procedimento/Tema','Dente/Local','Participantes','Obs','Próx.Visita/Retorno'],cargo:['dentista','auxiliar_dentista']},
+  nutricao:{tbl:'atendimentos_nutricao',var:'atendNut',campos:['peso','altura','imc','classificacao_imc','circunf_abdominal','diagnostico_nutricional','conduta','data_retorno'],ids:['nut-peso','nut-altura','nut-imc','nut-class-imc','nut-ca','nut-diag','nut-conduta','nut-retorno'],pacSel:'nut-pac-sel',dataId:'nut-data',tbody:'tbody-nut',msg:'msg-nut',cols:['Data','Paciente','Peso','Altura','IMC','Class.','Circ.Abd.','Diagnóstico','Retorno'],cargo:['nutricao','enfermeiro']},
+  social:{tbl:'atendimentos_social',var:'atendSoc',campos:['demanda','vulnerabilidades','encaminhamentos','beneficios','observacoes'],ids:['soc-demanda','soc-vuln','soc-encam','soc-benef','soc-obs'],pacSel:'soc-pac-sel',dataId:'soc-data',tbody:'tbody-soc',msg:'msg-soc',cols:['Data','Paciente','Demanda','Vulnerabilidades','Encaminhamentos','Benefícios'],cargo:['assistente_social']},
+};
+
+// Toggle campos odonto conforme tipo
+function toggleOdoTipo(){
+  const tipo=gV('odo-tipo');
+  const clinico=tipo==='clinico';
+  const visita=tipo==='visita';
+  const palestra=tipo==='palestra'||tipo==='escovacao';
+  document.getElementById('odo-proc-wrap').style.display=clinico?'':'none';
+  document.getElementById('odo-dente-wrap').style.display=clinico?'':'none';
+  document.getElementById('odo-tema-wrap').style.display=palestra||visita?'':'none';
+  document.getElementById('odo-local-wrap').style.display=visita||palestra?'':'none';
+  document.getElementById('odo-participantes-wrap').style.display=palestra||visita?'':'none';
+}
+
+async function carregarAtend(mod){
+  const c=CFG_ATEND[mod];
+  // Se admin, carrega tudo. Se profissional, filtra pelo cargo/setor
+  let query=sb.from(c.tbl).select('*').order('data_atendimento',{ascending:false});
+  if(!isAdmin){
+    // Profissional vê apenas seus próprios registros
+    query=query.eq('user_id',usuarioAtual.id);
+  }
+  const {data}=await query;
+  if(mod==='medico')atendMed=data||[];
+  else if(mod==='odonto')atendOdo=data||[];
+  else if(mod==='nutricao')atendNut=data||[];
+  else if(mod==='social')atendSoc=data||[];
+}
+async function salvarAtendimentoModulo(mod){
+  const c=CFG_ATEND[mod];
+  const pacId=gV(c.pacSel);if(!pacId){alert('Selecione o paciente.');return;}
+  const dados={paciente_id:pacId,data_atendimento:gV(c.dataId)||null,user_id:usuarioAtual.id};
+  c.campos.forEach((campo,i)=>{const v=gV(c.ids[i]);dados[campo]=v||null;});
+  const {error}=await sb.from(c.tbl).insert(dados);
+  if(!error){showMsg(c.msg,'ok');await carregarAtend(mod);renderAtendimentos(mod);renderDashboard();}
+  else alert('Erro: '+error.message);
+}
+function renderAtendimentos(mod){
+  const c=CFG_ATEND[mod];
+  let arr=mod==='medico'?atendMed:mod==='odonto'?atendOdo:mod==='nutricao'?atendNut:atendSoc;
+  const tbody=document.getElementById(c.tbody);if(!tbody)return;
+  tbody.innerHTML=arr.map(r=>{
+    const pac=pacientes.find(p=>p.id===r.paciente_id);
+    const vals=c.campos.map(f=>r[f]||'—');
+    return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td>${vals.map(v=>`<td>${v}</td>`).join('')}</tr>`;
+  }).join('');
+  if(!arr.length)tbody.innerHTML=`<tr><td colspan="${c.cols.length}" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>`;
+}
+
+// ===================== SAÚDE MENTAL =====================
+async function salvarMental(){
+  const dados={
+    paciente_id:gV('sm-pac'),data_atendimento:gV('sm-data')||null,
+    tipo_atendimento:gV('sm-tipo'),cid10:gV('sm-cid'),diagnostico:gV('sm-diag'),
+    medicacao_psicotr:gV('sm-med'),usa_psicotropico:document.getElementById('sm-usa-psico')?.checked||false,
+    situacao_violencia:gV('sm-viol'),risco_suicidio:gV('sm-risco'),
+    tentativa_suicidio:document.getElementById('sm-tent-suic')?.checked||false,
+    data_tentativa:gV('sm-data-tent')||null,
+    acompanhamento_rede:document.getElementById('sm-rede')?.checked||false,
+    rede_servico:gV('sm-rede-serv'),encaminhamento:gV('sm-encam'),
+    observacoes:gV('sm-obs'),user_id:usuarioAtual.id
+  };
+  const {error}=await sb.from('saude_mental_pac').insert(dados);
+  if(!error){showMsg('msg-mental','ok');await carregarModulo('saude_mental_pac','dadosMental');renderMentalTabela();renderMentalPsico();renderMentalSuicidio();renderDashboard();}
+  else alert('Erro: '+error.message);
+}
+function renderMentalTabela(){
+  const filtro=document.getElementById('filtro-mental')?.value||'todos';
+  let lista=dadosMental;
+  if(filtro==='tentativa')lista=lista.filter(r=>r.tentativa_suicidio);
+  else if(filtro==='psicotropico')lista=lista.filter(r=>r.usa_psicotropico);
+  else if(filtro==='violencia')lista=lista.filter(r=>r.situacao_violencia);
+  else if(filtro==='alto')lista=lista.filter(r=>r.risco_suicidio==='alto'||r.risco_suicidio==='iminente');
+  const tbody=document.getElementById('tbody-mental');if(!tbody)return;
+  tbody.innerHTML=lista.map(r=>{
+    const pac=pacientes.find(p=>p.id===r.paciente_id);
+    const rc=r.risco_suicidio==='alto'||r.risco_suicidio==='iminente'?'risco-alto':r.risco_suicidio==='médio'?'risco-medio':r.risco_suicidio==='baixo'?'risco-baixo':'risco-sem';
+    return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td><td><span class="badge badge-roxo">${r.tipo_atendimento||'—'}</span></td><td>${r.cid10||'—'}</td><td>${r.diagnostico||'—'}</td><td>${r.usa_psicotropico?'<span class="badge badge-amarelo">💊 Sim</span>':'<span class="badge badge-cinza">Não</span>'}</td><td>${r.situacao_violencia?`<span class="badge badge-vermelho">${r.situacao_violencia}</span>`:'<span class="badge badge-cinza">—</span>'}</td><td><span class="${rc}">${r.risco_suicidio||'—'}</span></td><td>${r.tentativa_suicidio?'<span class="badge badge-vermelho">🆘 Sim</span>':'<span class="badge badge-cinza">Não</span>'}</td><td>${r.acompanhamento_rede?'<span class="badge badge-verde">✅</span>':'<span class="badge badge-cinza">Não</span>'}</td><td>${r.encaminhamento||'—'}</td></tr>`;
+  }).join('');
+  if(!lista.length)tbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>';
+  const el=document.getElementById('stats-mental');
+  if(el)el.innerHTML=[
+    {l:'Total Atend.',v:dadosMental.length,t:'roxo',i:'🧠'},
+    {l:'Psicotrópicos',v:dadosMental.filter(r=>r.usa_psicotropico).length,t:'amarelo',i:'💊'},
+    {l:'Com Violência',v:dadosMental.filter(r=>r.situacao_violencia).length,t:'alerta',i:'⚠️'},
+    {l:'Risco Alto',v:dadosMental.filter(r=>r.risco_suicidio==='alto'||r.risco_suicidio==='iminente').length,t:'alerta',i:'🔴'},
+    {l:'Tent. Suicídio',v:dadosMental.filter(r=>r.tentativa_suicidio).length,t:'alerta',i:'🆘'},
+    {l:'Em Rede',v:dadosMental.filter(r=>r.acompanhamento_rede).length,t:'verde',i:'🔗'},
+  ].map(s=>`<div class="stat ${s.t}"><div style="font-size:1.1rem;margin-bottom:2px">${s.i}</div><div class="stat-n">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
+  const alertEl=document.getElementById('alerta-mental');
+  const tent=dadosMental.filter(r=>r.tentativa_suicidio).length;
+  if(alertEl)alertEl.innerHTML=tent>0?`<div class="alert-banner"><div class="alert-icon">🆘</div><div><h3>⚠️ ${tent} caso(s) de tentativa de suicídio!</h3><p>Ativar protocolo de crise e acionar rede de proteção imediatamente.</p></div></div>`:'';
+}
+function renderMentalPsico(){
+  const tbody=document.getElementById('tbody-psico');if(!tbody)return;
+  const lista=dadosMental.filter(r=>r.usa_psicotropico);
+  tbody.innerHTML=lista.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return `<tr><td style="font-weight:700">${pac?.nome||'—'}</td><td>${pac?.aldeia||'—'}</td><td>${r.medicacao_psicotr||'—'}</td><td>${r.diagnostico||'—'}</td><td>${fmtData(r.data_atendimento)}</td></tr>`;}).join('');
+  if(!lista.length)tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--cinza);padding:14px">Nenhum usuário de psicotrópico.</td></tr>';
+}
+function renderMentalSuicidio(){
+  const tbody=document.getElementById('tbody-suicidio');if(!tbody)return;
+  const lista=dadosMental.filter(r=>r.tentativa_suicidio);
+  tbody.innerHTML=lista.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);const rc=r.risco_suicidio==='alto'||r.risco_suicidio==='iminente'?'risco-alto':r.risco_suicidio==='médio'?'risco-medio':'risco-baixo';return `<tr><td style="font-weight:700">${pac?.nome||'—'}</td><td class="alerta">${fmtData(r.data_tentativa)}</td><td><span class="${rc}">${r.risco_suicidio||'—'}</span></td><td>${r.encaminhamento||'—'}</td><td>${r.rede_servico||'—'}</td></tr>`;}).join('');
+  if(!lista.length)tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--cinza);padding:14px">Nenhuma tentativa registrada.</td></tr>';
+}
+
+// ===================== CRAS =====================
+async function salvarCras(){
+  const dados={paciente_id:gV('cras-pac'),servico:gV('cras-serv'),data_atendimento:gV('cras-data')||null,tipo_demanda:gV('cras-demanda'),beneficio_acessado:gV('cras-benef'),programa_social:gV('cras-prog'),situacao_familiar:gV('cras-sit-fam'),renda_familiar:gV('cras-renda'),num_membros:parseInt(gV('cras-membros'))||0,criancas_vulneraveis:document.getElementById('cras-crianca')?.checked||false,situacao_violencia:document.getElementById('cras-violencia')?.checked||false,encaminhamento:gV('cras-encam'),observacoes:gV('cras-obs'),user_id:usuarioAtual.id};
+  const {error}=await sb.from('cras_creas').insert(dados);
+  if(!error){showMsg('msg-cras','ok');await carregarModulo('cras_creas','dadosCras');renderCrasTabela();renderDashboard();}
+  else alert('Erro: '+error.message);
+}
+function renderCrasTabela(){
+  const tbody=document.getElementById('tbody-cras');if(!tbody)return;
+  tbody.innerHTML=dadosCras.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td><td><span class="badge badge-azul">${r.servico||'—'}</span></td><td>${r.tipo_demanda||'—'}</td><td>${r.situacao_familiar||'—'}</td><td>${r.beneficio_acessado||'—'}</td><td>${r.encaminhamento||'—'}</td></tr>`;}).join('');
+  if(!dadosCras.length)tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>';
+  const el=document.getElementById('stats-cras');
+  if(el)el.innerHTML=[
+    {l:'Total Atend.',v:dadosCras.length,t:'teal',i:'🏛️'},
+    {l:'Crianças Vulneráveis',v:dadosCras.filter(r=>r.criancas_vulneraveis).length,t:'alerta',i:'👧'},
+    {l:'Com Violência',v:dadosCras.filter(r=>r.situacao_violencia).length,t:'alerta',i:'⚠️'},
+  ].map(s=>`<div class="stat ${s.t}"><div style="font-size:1.1rem;margin-bottom:2px">${s.i}</div><div class="stat-n">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
+}
+
+// ===================== CONSELHO TUTELAR =====================
+async function salvarCT(){
+  const dados={paciente_id:gV('ct-pac'),data_atendimento:gV('ct-data')||null,tipo_violacao:gV('ct-tipo'),agressor:gV('ct-agressor'),status_caso:gV('ct-status'),medida_aplicada:gV('ct-medida'),encaminhamento:gV('ct-encam'),observacoes:gV('ct-obs'),user_id:usuarioAtual.id};
+  const {error}=await sb.from('conselho_tutelar').insert(dados);
+  if(!error){showMsg('msg-ct','ok');await carregarModulo('conselho_tutelar','dadosCT');renderCTTabela();renderDashboard();}
+  else alert('Erro: '+error.message);
+}
+function renderCTTabela(){
+  const tbody=document.getElementById('tbody-ct');if(!tbody)return;
+  tbody.innerHTML=dadosCT.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td><td><span class="badge badge-vermelho">${r.tipo_violacao||'—'}</span></td><td>${r.agressor||'—'}</td><td><span class="badge ${r.status_caso==='Encerrado'?'badge-verde':'badge-amarelo'}">${r.status_caso||'—'}</span></td><td>${r.medida_aplicada||'—'}</td><td>${r.encaminhamento||'—'}</td></tr>`;}).join('');
+  if(!dadosCT.length)tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>';
+  const el=document.getElementById('stats-ct');
+  if(el)el.innerHTML=[
+    {l:'Total Ocorr.',v:dadosCT.length,t:'aviso',i:'👨‍⚖️'},
+    {l:'Em Acompanham.',v:dadosCT.filter(r=>r.status_caso==='Em Acompanhamento').length,t:'alerta',i:'🔄'},
+    {l:'Encerrados',v:dadosCT.filter(r=>r.status_caso==='Encerrado').length,t:'verde',i:'✅'},
+  ].map(s=>`<div class="stat ${s.t}"><div style="font-size:1.1rem;margin-bottom:2px">${s.i}</div><div class="stat-n">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
+}
+
+// ===================== SEGURANÇA PÚBLICA =====================
+async function salvarSeg(){
+  const dados={paciente_id:gV('seg-pac'),data_atendimento:gV('seg-data')||null,tipo_ocorrencia:gV('seg-tipo'),envolvimento:gV('seg-envolvimento'),local:gV('seg-local'),boletim_ocorrencia:gV('seg-bo'),encaminhamento:gV('seg-encam'),observacoes:gV('seg-obs'),user_id:usuarioAtual.id};
+  const {error}=await sb.from('seguranca_publica').insert(dados);
+  if(!error){showMsg('msg-seg','ok');await carregarModulo('seguranca_publica','dadosSeg');renderSegTabela();renderDashboard();}
+  else alert('Erro: '+error.message);
+}
+function renderSegTabela(){
+  const tbody=document.getElementById('tbody-seg');if(!tbody)return;
+  tbody.innerHTML=dadosSeg.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td><td><span class="badge badge-preto">${r.tipo_ocorrencia||'—'}</span></td><td>${r.envolvimento||'—'}</td><td>${r.local||'—'}</td><td>${r.boletim_ocorrencia||'—'}</td><td>${r.encaminhamento||'—'}</td></tr>`;}).join('');
+  if(!dadosSeg.length)tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>';
+  const el=document.getElementById('stats-seg');
+  if(el)el.innerHTML=[
+    {l:'Total Ocorr.',v:dadosSeg.length,t:'cinza-esc',i:'🚔'},
+    {l:'Vítimas',v:dadosSeg.filter(r=>r.envolvimento==='Vítima').length,t:'alerta',i:'🆘'},
+    {l:'Homicídios',v:dadosSeg.filter(r=>r.tipo_ocorrencia==='Homicídio').length,t:'alerta',i:'💀'},
+  ].map(s=>`<div class="stat ${s.t}"><div style="font-size:1.1rem;margin-bottom:2px">${s.i}</div><div class="stat-n">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
+}
+
+// ===================== SEC. SAÚDE MUNICIPAL =====================
+async function salvarSSM(){
+  const dados={paciente_id:gV('ssm-pac'),data_atendimento:gV('ssm-data')||null,tipo_notificacao:gV('ssm-tipo'),servico:gV('ssm-serv'),motivo:gV('ssm-motivo'),encaminhamento:gV('ssm-encam'),data_retorno:gV('ssm-retorno')||null,status:gV('ssm-status'),observacoes:gV('ssm-obs'),user_id:usuarioAtual.id};
+  const {error}=await sb.from('sec_saude_municipal').insert(dados);
+  if(!error){showMsg('msg-ssm','ok');await carregarModulo('sec_saude_municipal','dadosSSM');renderSSMTabela();renderDashboard();}
+  else alert('Erro: '+error.message);
+}
+function renderSSMTabela(){
+  const tbody=document.getElementById('tbody-ssm');if(!tbody)return;
+  tbody.innerHTML=dadosSSM.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);const sc=r.status==='realizado'?'badge-verde':r.status==='cancelado'?'badge-vermelho':'badge-amarelo';return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td><td>${r.tipo_notificacao||'—'}</td><td>${r.servico||'—'}</td><td>${r.motivo||'—'}</td><td>${r.encaminhamento||'—'}</td><td>${fmtData(r.data_retorno)}</td><td><span class="badge ${sc}">${r.status||'—'}</span></td></tr>`;}).join('');
+  if(!dadosSSM.length)tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>';
+  const el=document.getElementById('stats-ssm');
+  if(el)el.innerHTML=[
+    {l:'Total',v:dadosSSM.length,t:'verde',i:'🏥'},
+    {l:'Pendentes',v:dadosSSM.filter(r=>r.status==='pendente').length,t:'aviso',i:'⏳'},
+    {l:'Realizados',v:dadosSSM.filter(r=>r.status==='realizado').length,t:'verde',i:'✅'},
+  ].map(s=>`<div class="stat ${s.t}"><div style="font-size:1.1rem;margin-bottom:2px">${s.i}</div><div class="stat-n">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
+}
+
+// ===================== ÓBITOS =====================
+async function salvarObito(){
+  const nome=gV('ob-nome');if(!nome){alert('Informe o nome.');return;}
+  const dados={nome_falecido:nome,data_nascimento:gV('ob-nasc')||null,sexo:gV('ob-sexo'),idade_obito:parseInt(gV('ob-idade'))||null,aldeia:gV('ob-aldeia'),municipio:gV('ob-mun'),data_obito:gV('ob-data')||null,categoria_causa:gV('ob-cat'),causa_obito:gV('ob-causa'),cid10:gV('ob-cid'),local_obito:gV('ob-local'),observacoes:gV('ob-obs'),user_id:usuarioAtual.id};
+  const {error}=await sb.from('obitos').insert(dados);
+  if(!error){showMsg('msg-obito','ok');await carregarModulo('obitos','dadosObitos','criado_em');renderObitosTabela();renderDashboard();}
+  else alert('Erro: '+error.message);
+}
+function renderObitosTabela(){
+  const filtro=document.getElementById('filtro-obito')?.value||'todos';
+  let lista=filtro==='todos'?dadosObitos:dadosObitos.filter(o=>o.categoria_causa===filtro);
+  const tbody=document.getElementById('tbody-obitos');if(!tbody)return;
+  tbody.innerHTML=lista.map(o=>`<tr><td style="font-weight:700">${o.nome_falecido||'—'}</td><td class="alerta">${fmtData(o.data_obito)}</td><td>${o.aldeia||'—'}</td><td>${o.sexo==='M'?'👨 Masc':'👩 Fem'}</td><td>${o.idade_obito!==null?o.idade_obito+'a':'—'}</td><td><span class="badge badge-preto">${o.categoria_causa||'—'}</span></td><td>${o.causa_obito||'—'}</td><td>${o.cid10||'—'}</td><td>${o.local_obito||'—'}</td></tr>`).join('');
+  if(!lista.length)tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>';
+  const el=document.getElementById('stats-obitos');
+  if(el)el.innerHTML=[
+    {l:'Total Óbitos',v:dadosObitos.length,t:'cinza-esc',i:'⚫'},
+    {l:'Causas Externas',v:dadosObitos.filter(o=>o.categoria_causa==='Causas Externas').length,t:'alerta',i:'⚠️'},
+    {l:'Infantis (0-5a)',v:dadosObitos.filter(o=>o.idade_obito!==null&&o.idade_obito<=5).length,t:'alerta',i:'👶'},
+    {l:'Suicídios',v:dadosObitos.filter(o=>o.categoria_causa==='Saúde Mental'&&o.causa_obito==='Suicídio').length,t:'alerta',i:'🆘'},
+  ].map(s=>`<div class="stat ${s.t}"><div style="font-size:1.1rem;margin-bottom:2px">${s.i}</div><div class="stat-n">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
+}
+
+// ===================== FARMÁCIA =====================
+async function carregarFarm(){
+  const {data:est}=await sb.from('estoque_farm').select('*').order('nome');
+  estoqueAtual=est||[];
+  const {data:said}=await sb.from('saidas_farm').select('*').order('criado_em',{ascending:false}).limit(100);
+  saidasFarm=said||[];
+  renderEstoqueFarm();
+  // Popula select de medicamentos
+  const sel=document.getElementById('farm-saida-id');
+  if(sel)sel.innerHTML=estoqueAtual.map(f=>`<option value="${f.id}">${f.nome} (${f.quantidade_atual} ${f.unidade})</option>`).join('');
+}
+async function cadastrarFarm(){
+  const nome=gV('farm-nome');if(!nome)return;
+  const dados={nome,categoria:gV('farm-cat'),unidade:gV('farm-unidade'),quantidade_atual:parseInt(gV('farm-qtd-ini'))||0,quantidade_minima:parseInt(gV('farm-qtd-min'))||10,user_id:usuarioAtual.id};
+  const {error}=await sb.from('estoque_farm').insert(dados);
+  if(!error){showMsg('msg-farm-cad','ok');await carregarFarm();}
+  else alert('Erro: '+error.message);
+}
+function renderEstoqueFarm(){
+  const el=document.getElementById('estoque-grid');if(!el)return;
+  if(!estoqueAtual.length){el.innerHTML='<div class="info-box ib-azul">Nenhum medicamento cadastrado.</div>';return;}
+  const cats=[...new Set(estoqueAtual.map(f=>f.categoria))];
+  el.innerHTML=cats.map(cat=>{
+    const items=estoqueAtual.filter(f=>f.categoria===cat);
+    return `<div class="sep">💊 ${cat}</div><div class="saida-cat-grid">${items.map(f=>{
+      const pct=f.quantidade_minima>0?Math.min(100,(f.quantidade_atual/f.quantidade_minima)*50):100;
+      const cl=f.quantidade_atual<=f.quantidade_minima?'alerta-ins':f.quantidade_atual<=f.quantidade_minima*2?'aviso-ins':'';
+      return `<div class="saida-cat-card" style="border-left-color:${cl==='alerta-ins'?'var(--vermelho)':cl==='aviso-ins'?'var(--laranja)':'var(--verde)'}">
+        <div class="ins-nome">${f.nome}</div><div class="ins-cat">${f.unidade}</div>
+        <div class="ins-qtd" style="color:${cl==='alerta-ins'?'var(--vermelho)':cl==='aviso-ins'?'var(--laranja)':'var(--verde)'}">${f.quantidade_atual}</div>
+        <div class="ins-bar"><div class="ins-bar-fill" style="width:${pct}%;background:${cl==='alerta-ins'?'var(--vermelho)':cl==='aviso-ins'?'var(--laranja)':'var(--verde)'}"></div></div>
+        <div style="display:flex;gap:5px;margin-top:7px">
+          <button class="btn btn-success btn-sm" onclick="movFarm('${f.id}','entrada')">+</button>
+          <button class="btn btn-danger btn-sm" onclick="movFarm('${f.id}','saida')">-</button>
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+  }).join('');
+}
+function movFarm(id,tipo){movFarmId=id;movFarmTipo=tipo;document.getElementById('modal-mov-farm-titulo').textContent=tipo==='entrada'?'➕ Entrada de Medicamento':'📤 Saída de Medicamento';document.getElementById('modal-mov-farm').classList.add('open');}
+async function confirmarMovFarm(){
+  const qtd=parseInt(gV('mmf-qtd'))||0;if(qtd<=0)return;
+  const item=estoqueAtual.find(f=>f.id===movFarmId);if(!item)return;
+  const nova=movFarmTipo==='entrada'?item.quantidade_atual+qtd:Math.max(0,item.quantidade_atual-qtd);
+  const {error}=await sb.from('estoque_farm').update({quantidade_atual:nova}).eq('id',movFarmId);
+  if(!error){
+    await sb.from('saidas_farm').insert({estoque_id:movFarmId,nome_item:item.nome,quantidade:qtd,tipo:movFarmTipo,motivo:gV('mmf-motivo'),user_id:usuarioAtual.id});
+    fecharModal('modal-mov-farm');await carregarFarm();
+  }
+}
+async function registrarSaidaFarm(){
+  const id=gV('farm-saida-id');const qtd=parseInt(gV('farm-saida-qtd'))||1;const pacId=gV('farm-saida-pac');const motivo=gV('farm-saida-motivo');
+  const item=estoqueAtual.find(f=>f.id===id);if(!item){alert('Selecione o medicamento.');return;}
+  const nova=Math.max(0,item.quantidade_atual-qtd);
+  await sb.from('estoque_farm').update({quantidade_atual:nova}).eq('id',id);
+  await sb.from('saidas_farm').insert({estoque_id:id,nome_item:item.nome,quantidade:qtd,tipo:'saida',paciente_id:pacId||null,motivo,user_id:usuarioAtual.id});
+  showMsg('msg-farm-saida','ok');await carregarFarm();await carregarSaidasFarm();renderSaidasFarm();
+}
+async function carregarSaidasFarm(){const {data}=await sb.from('saidas_farm').select('*').order('criado_em',{ascending:false}).limit(100);saidasFarm=data||[];}
+function renderSaidasFarm(){
+  const tbody=document.getElementById('tbody-farm-saidas');if(!tbody)return;
+  tbody.innerHTML=saidasFarm.map(s=>{const pac=pacientes.find(p=>p.id===s.paciente_id);return `<tr><td>${s.criado_em?new Date(s.criado_em).toLocaleDateString('pt-BR'):'—'}</td><td style="font-weight:700">${s.nome_item||'—'}</td><td>${s.quantidade}</td><td>${pac?.nome||'—'}</td><td>${s.motivo||'—'}</td></tr>`;}).join('');
+  if(!saidasFarm.length)tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--cinza);padding:14px">Nenhuma saída registrada.</td></tr>';
+}
+
+// ===================== INSUMOS =====================
+async function carregarInsumos(){
+  const {data}=await sb.from('insumos_odonto').select('*').order('nome');
+  insumosAtual=data||[];
+  renderInsumosGrid();
+}
+async function cadastrarIns(){
+  const nome=gV('ins-nome');if(!nome)return;
+  const dados={nome,categoria:gV('ins-cat'),unidade:gV('ins-unidade'),quantidade_atual:parseInt(gV('ins-qtd-ini'))||0,quantidade_minima:parseInt(gV('ins-qtd-min'))||5,user_id:usuarioAtual.id};
+  const {error}=await sb.from('insumos_odonto').insert(dados);
+  if(!error){showMsg('msg-ins-cad','ok');await carregarInsumos();}
+  else alert('Erro: '+error.message);
+}
+function renderInsumosGrid(){
+  const el=document.getElementById('insumos-grid');if(!el)return;
+  if(!insumosAtual.length){el.innerHTML='<div class="info-box ib-azul">Nenhum insumo cadastrado.</div>';return;}
+  const cats=[...new Set(insumosAtual.map(f=>f.categoria))];
+  el.innerHTML=cats.map(cat=>{
+    const items=insumosAtual.filter(f=>f.categoria===cat);
+    return `<div class="sep">🔬 ${cat}</div><div class="saida-cat-grid">${items.map(f=>{
+      const cl=f.quantidade_atual<=f.quantidade_minima?'alerta-ins':f.quantidade_atual<=f.quantidade_minima*2?'aviso-ins':'';
+      return `<div class="ins-card ${cl}"><div class="ins-nome">${f.nome}</div><div class="ins-cat">${f.categoria} · ${f.unidade}</div>
+        <div class="ins-qtd">${f.quantidade_atual}</div>
+        <div style="display:flex;gap:5px;margin-top:7px">
+          <button class="btn btn-success btn-sm" onclick="movIns('${f.id}','entrada')">+</button>
+          <button class="btn btn-danger btn-sm" onclick="movIns('${f.id}','saida')">-</button>
+        </div></div>`;
+    }).join('')}</div>`;
+  }).join('');
+}
+function movIns(id,tipo){movInsId=id;movInsTipo=tipo;document.getElementById('modal-mov-ins-titulo').textContent=tipo==='entrada'?'➕ Entrada de Insumo':'📤 Saída de Insumo';document.getElementById('modal-mov-ins').classList.add('open');}
+async function confirmarMovIns(){
+  const qtd=parseInt(gV('mmi-qtd'))||0;if(qtd<=0)return;
+  const item=insumosAtual.find(f=>f.id===movInsId);if(!item)return;
+  const nova=movInsTipo==='entrada'?item.quantidade_atual+qtd:Math.max(0,item.quantidade_atual-qtd);
+  const {error}=await sb.from('insumos_odonto').update({quantidade_atual:nova}).eq('id',movInsId);
+  if(!error){fecharModal('modal-mov-ins');await carregarInsumos();}
+}
+
+// ===================== USUÁRIOS =====================
+async function carregarUsuarios(){
+  const {data:usuarios, error:errU}=await sb.from('perfis_emsi').select('*').order('nome');
+  const {data:fotos}=await sb.from('perfis_fotos').select('*');
+  const wrap=document.getElementById('usuarios-cards');if(!wrap)return;
+
+  if(errU){
+    wrap.innerHTML=`<div class="info-box ib-vermelho">⚠️ Erro ao carregar profissionais: ${errU.message}</div>`;
+    return;
+  }
+  if(!usuarios||usuarios.length===0){
+    wrap.innerHTML='<div class="info-box ib-azul">Nenhum profissional cadastrado ainda.</div>';return;
+  }
+  wrap.innerHTML=usuarios.map(u=>{
+    const ci=CARGO_INFO[u.tipo]||{l:'Profissional',e:'👤',b:'badge-cinza'};
+    const foto=fotos?.find(f=>f.user_id===u.user_id);
+    const fotoHtml=foto?.foto_url
+      ?`<img src="${foto.foto_url}" style="width:70px;height:70px;border-radius:50%;object-fit:cover;border:3px solid var(--azul-claro)">`
+      :`<div style="width:70px;height:70px;border-radius:50%;background:var(--cinza-claro);display:flex;align-items:center;justify-content:center;font-size:28px;border:3px solid var(--azul-claro)">${ci.e}</div>`;
+    return `<div style="background:white;border-radius:14px;box-shadow:var(--sombra);padding:16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px">
+      ${fotoHtml}
+      <div style="font-size:.82rem;font-weight:800;color:var(--azul-escuro);line-height:1.2">${u.nome||'—'}</div>
+      <span class="badge ${ci.b}" style="font-size:.62rem">${ci.e} ${ci.l}</span>
+      <button class="btn btn-danger btn-sm" style="font-size:.62rem;padding:4px 10px;margin-top:2px" onclick="excluirUsuario('${u.id}','${(u.nome || '').replace(/'/g, '\\\'')}')">🗑️ Excluir</button>
+    </div>`;
+  }).join('');
+}
+
+async function excluirUsuario(id, nome){
+  if(!confirm(`⚠️ Tem certeza que deseja EXCLUIR o profissional "${nome}"?\n\nEsta ação remove o perfil do sistema.`))return;
+  const {error}=await sb.from('perfis_emsi').delete().eq('id',id);
+  if(!error){
+    mostrarNotif(`🗑️ Profissional <strong>${nome}</strong> removido.`);
+    await carregarUsuarios();
+  } else alert('Erro ao excluir: '+error.message);
+}
+
+async function criarUsuario(){
+  const nome=gV('nu-nome'),email=gV('nu-email'),senha=gV('nu-senha'),tipo=gV('nu-tipo');
+  if(!nome){alert('Informe o nome do profissional.');return;}
+  if(!email||!senha){alert('Preencha e-mail e senha.');return;}
+  if(senha.length<6){alert('A senha deve ter no mínimo 6 caracteres.');return;}
+
+  const btn=document.querySelector('[onclick="criarUsuario()"]');
+  if(btn){btn.textContent='Criando...';btn.disabled=true;}
+
+  // Tenta criar via signUp (funciona no frontend)
+  const {data,error}=await sb.auth.signUp({email,password:senha,options:{data:{nome,tipo}}});
+
+  if(btn){btn.textContent='➕ Criar Profissional';btn.disabled=false;}
+
+  if(error){
+    alert('Erro ao criar: '+error.message);return;
+  }
+
+  // Salva o perfil na tabela perfis_emsi
+  const userId=data?.user?.id;
+  if(userId){
+    // Verifica se já existe perfil para esse user_id
+    const {data:existente}=await sb.from('perfis_emsi').select('id').eq('user_id',userId).single();
+    if(existente){
+      // Atualiza
+      await sb.from('perfis_emsi').update({nome,email,tipo}).eq('user_id',userId);
+    } else {
+      // Insere novo
+      const {error:errPerfil}=await sb.from('perfis_emsi').insert({user_id:userId,nome,email,tipo});
+      if(errPerfil){alert('Usuário criado mas erro ao salvar perfil: '+errPerfil.message);return;}
+    }
+  } else {
+    const {error:errPerfil}=await sb.from('perfis_emsi').insert({nome,email,tipo});
+    if(errPerfil){alert('Usuário criado! Perfil salvo sem confirmação de e-mail.');return;}
+  }
+
+  // Limpa os campos
+  setV('nu-nome','');setV('nu-email','');setV('nu-senha','');
+  showMsg('msg-usuario','ok');
+  await carregarUsuarios();
+}
+
+// ===================== MINHA PRODUÇÃO =====================
+async function renderMinhaProd(){
+  const wrap=document.getElementById('minha-prod-wrap');if(!wrap)return;
+  const uid=usuarioAtual.id;
+  const [med,odo,nut,soc,mental,cras,ct,seg,ssm]=await Promise.all([
+    sb.from('atendimentos_medico').select('*',{count:'exact'}).eq('user_id',uid),
+    sb.from('atendimentos_odonto').select('*',{count:'exact'}).eq('user_id',uid),
+    sb.from('atendimentos_nutricao').select('*',{count:'exact'}).eq('user_id',uid),
+    sb.from('atendimentos_social').select('*',{count:'exact'}).eq('user_id',uid),
+    sb.from('saude_mental_pac').select('*',{count:'exact'}).eq('user_id',uid),
+    sb.from('cras_creas').select('*',{count:'exact'}).eq('user_id',uid),
+    sb.from('conselho_tutelar').select('*',{count:'exact'}).eq('user_id',uid),
+    sb.from('seguranca_publica').select('*',{count:'exact'}).eq('user_id',uid),
+    sb.from('sec_saude_municipal').select('*',{count:'exact'}).eq('user_id',uid),
+  ]);
+  const info=CARGO_INFO[perfilAtual?.tipo]||{l:'Profissional',e:'👤'};
+  wrap.innerHTML=`
+    <div style="margin-bottom:12px"><h3 style="font-size:1rem;font-weight:800;color:var(--azul-escuro)">📋 Minha Produção — ${info.e} ${perfilAtual?.nome||''}</h3></div>
+    <div class="dash-grid">
+      ${[
+        {l:'Atend. Médico',v:med.count||0,t:'',i:'🩺'},
+        {l:'Atend. Odonto',v:odo.count||0,t:'roxo',i:'🦷'},
+        {l:'Atend. Nutrição',v:nut.count||0,t:'verde',i:'🥦'},
+        {l:'Atend. Social',v:soc.count||0,t:'aviso',i:'🤝'},
+        {l:'Saúde Mental',v:mental.count||0,t:'roxo',i:'🧠'},
+        {l:'CRAS/CREAS',v:cras.count||0,t:'teal',i:'🏛️'},
+        {l:'Cons. Tutelar',v:ct.count||0,t:'aviso',i:'👨‍⚖️'},
+        {l:'Segurança',v:seg.count||0,t:'cinza-esc',i:'🚔'},
+        {l:'Sec. Saúde',v:ssm.count||0,t:'verde',i:'🏥'},
+      ].map(s=>`<div class="stat ${s.t}"><div style="font-size:1.1rem;margin-bottom:2px">${s.i}</div><div class="stat-n">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('')}
+    </div>`;
+}
+
+// ===================== RELATÓRIO =====================
+function renderRelatorio(){
+  const el=document.getElementById('rel-conteudo');if(!el)return;
+  const mes=gV('sel-mes');const ano=gV('sel-ano');
+  el.innerHTML=`
+    <div class="card"><div class="card-header hdr-dash"><h2>📄 Relatório Consolidado — ${MN[parseInt(mes)]} / ${ano}</h2></div><div class="card-body">
+    <div class="sep">🏥 SAÚDE</div>
+    <div class="dash-grid">
+      ${[
+        {l:'Pacientes',v:pacientes.length,i:'👥'},
+        {l:'Médico',v:atendMed.length,i:'🩺'},
+        {l:'Odonto',v:atendOdo.length,i:'🦷'},
+        {l:'Nutrição',v:atendNut.length,i:'🥦'},
+        {l:'Social',v:atendSoc.length,i:'🤝'},
+        {l:'Gestantes',v:gestantes.length,i:'🤰'},
+        {l:'Vacinas Aplic.',v:vacinasPac.filter(v=>v.status==='aplicada').length,i:'💉'},
+      ].map(s=>`<div class="stat"><div style="font-size:1.1rem">${s.i}</div><div class="stat-n">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('')}
+    </div>
+    <div class="sep">🔗 INTERSETORIAL</div>
+    <div class="dash-grid">
+      ${[
+        {l:'Saúde Mental',v:dadosMental.length,i:'🧠'},
+        {l:'CRAS/CREAS',v:dadosCras.length,i:'🏛️'},
+        {l:'Cons. Tutelar',v:dadosCT.length,i:'👨‍⚖️'},
+        {l:'Segurança',v:dadosSeg.length,i:'🚔'},
+        {l:'Sec. Saúde',v:dadosSSM.length,i:'🏥'},
+        {l:'Óbitos',v:dadosObitos.length,i:'⚫'},
+      ].map(s=>`<div class="stat"><div style="font-size:1.1rem">${s.i}</div><div class="stat-n">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('')}
+    </div>
+    </div></div>`;
+}
+
+// ===================== PDF COM jsPDF =====================
+function _pdfCabecalho(doc,titulo){
+  const {jsPDF}=window.jspdf;
+  doc.setFillColor(13,32,64);
+  doc.rect(0,0,210,22,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(13);doc.setFont('helvetica','bold');
+  doc.text('PAINEL EMSI — POLO BASE GUAÍRA',14,9);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.text('Equipe Multidisciplinar de Saúde Indígena · DSEI Litoral Sul · SESAI/MS',14,15);
+  doc.setFontSize(9);doc.setFont('helvetica','bold');
+  doc.setTextColor(13,32,64);
+  doc.text(titulo,14,30);
+  const now=new Date();
+  doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(100,100,100);
+  doc.text(`Gerado em: ${now.toLocaleDateString('pt-BR')} ${now.toLocaleTimeString('pt-BR')}`,14,36);
+  return 42;
+}
+function _pdfRodape(doc){
+  const pg=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pg;i++){
+    doc.setPage(i);
+    doc.setFontSize(7);doc.setTextColor(150,150,150);
+    doc.text(`Página ${i} de ${pg} — PAINEL EMSI · Polo Base Guaíra`,14,290);
+  }
+}
+function _pdfTabela(doc,y,colunas,linhas,titulo){
+  if(titulo){doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(13,32,64);doc.text(titulo,14,y);y+=5;}
+  doc.autoTable({
+    startY:y,head:[colunas],body:linhas,
+    styles:{fontSize:7,cellPadding:2,font:'helvetica'},
+    headStyles:{fillColor:[13,32,64],textColor:255,fontStyle:'bold'},
+    alternateRowStyles:{fillColor:[240,244,248]},
+    margin:{left:14,right:14},
+    didDrawPage:(d)=>{y=d.cursor.y;}
+  });
+  return doc.lastAutoTable.finalY+6;
+}
+function _pdfStats(doc,y,stats){
+  doc.setFontSize(8);doc.setFont('helvetica','normal');
+  const cw=40,ch=16,cols=4,mx=14;
+  stats.forEach((s,i)=>{
+    const col=i%cols,row=Math.floor(i/cols);
+    const x=mx+col*(cw+3),yy=y+row*(ch+3);
+    doc.setFillColor(240,244,248);doc.roundedRect(x,yy,cw,ch,2,2,'F');
+    doc.setFontSize(12);doc.setFont('helvetica','bold');doc.setTextColor(13,32,64);
+    doc.text(String(s.v),x+cw/2,yy+8,{align:'center'});
+    doc.setFontSize(6);doc.setFont('helvetica','normal');doc.setTextColor(100,100,100);
+    doc.text(s.l,x+cw/2,yy+13,{align:'center'});
+  });
+  const rows=Math.ceil(stats.length/cols);
+  return y+rows*(ch+3)+4;
+}
+
+function pdfDash(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF();
+  let y=_pdfCabecalho(doc,'📊 Painel Central — Indicadores');
+  y=_pdfStats(doc,y,[
+    {l:'Pacientes',v:pacientes.length},{l:'Atend. Médico',v:atendMed.length},
+    {l:'Atend. Odonto',v:atendOdo.length},{l:'Nutrição',v:atendNut.length},
+    {l:'Social',v:atendSoc.length},{l:'Gestantes',v:gestantes.length},
+    {l:'Vacinas Aplic.',v:vacinasPac.filter(v=>v.status==='aplicada').length},
+    {l:'Estoque Crítico',v:estoqueAtual.filter(f=>f.quantidade_atual<=f.quantidade_minima).length},
+    {l:'Saúde Mental',v:dadosMental.length},{l:'CRAS/CREAS',v:dadosCras.length},
+    {l:'Cons. Tutelar',v:dadosCT.length},{l:'Óbitos',v:dadosObitos.length},
+  ]);
+  _pdfRodape(doc);doc.save('painel-central-emsi.pdf');
+}
+
+function pdfPacientes(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF();
+  let y=_pdfCabecalho(doc,'👥 Cadastro de Pacientes');
+  y=_pdfTabela(doc,y,['Nome','CPF','SUS','Nasc.','Sexo','Aldeia','Etnia'],
+    pacientes.map(p=>[p.nome||'—',p.cpf||'—',p.cartao_sus||'—',fmtData(p.data_nascimento),p.sexo||'—',p.aldeia||'—',p.etnia||'—']));
+  _pdfRodape(doc);doc.save('pacientes-emsi.pdf');
+}
+
+function pdfVacinas(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
+  let y=_pdfCabecalho(doc,'💉 Controle de Vacinação');
+  y=_pdfStats(doc,y,[
+    {l:'Total',v:vacinasPac.length},{l:'Aplicadas',v:vacinasPac.filter(v=>v.status==='aplicada').length},
+    {l:'Pendentes',v:vacinasPac.filter(v=>v.status==='pendente').length},{l:'Atrasadas',v:vacinasPac.filter(v=>v.status==='atrasada').length},
+  ]);
+  y=_pdfTabela(doc,y,['Paciente','Vacina','Categoria','Prevista','Aplicada','Status','Lote'],
+    vacinasPac.map(v=>{const pac=pacientes.find(p=>p.id===v.paciente_id);return[pac?.nome||'—',v.vacina||'—',v.categoria||'—',fmtData(v.data_prevista),fmtData(v.data_aplicada),v.status||'—',v.lote||'—'];}));
+  _pdfRodape(doc);doc.save('vacinacao-emsi.pdf');
+}
+
+function pdfGestante(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
+  let y=_pdfCabecalho(doc,'🤰 Acompanhamento de Gestantes');
+  y=_pdfTabela(doc,y,['Nome','Aldeia','Mês Gestação','DPP','Risco','Pré-natal','Peso','Pressão','Vacinação'],
+    gestantes.map(g=>{const pac=pacientes.find(p=>p.id===g.paciente_id);return[pac?.nome||'—',pac?.aldeia||'—',g.mes_gestacao||'—',fmtData(g.dpp),g.risco||'—',g.prenatal_num||'—',g.peso||'—',g.pressao||'—',g.vacinacao||'—'];}));
+  _pdfRodape(doc);doc.save('gestantes-emsi.pdf');
+}
+
+function pdfMedico(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
+  let y=_pdfCabecalho(doc,'🩺 Atendimentos Médicos');
+  y=_pdfTabela(doc,y,['Data','Paciente','Queixa','Diagnóstico','CID','Conduta','Encam.','Retorno'],
+    atendMed.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return[fmtData(r.data_atendimento),pac?.nome||'—',r.queixa||'—',r.diagnostico||'—',r.cid10||'—',r.conduta||'—',r.encaminhamento||'—',fmtData(r.data_retorno)];}));
+  _pdfRodape(doc);doc.save('atendimentos-medico-emsi.pdf');
+}
+
+function pdfOdonto(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
+  let y=_pdfCabecalho(doc,'🦷 Atendimentos Odontológicos');
+  y=_pdfTabela(doc,y,['Data','Paciente','Tipo','Procedimento','Dente','Observações','Retorno'],
+    atendOdo.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return[fmtData(r.data_atendimento),pac?.nome||'—',r.tipo_atendimento||'—',r.procedimento||'—',r.dente_regiao||'—',r.observacoes||'—',fmtData(r.data_retorno)];}));
+  _pdfRodape(doc);doc.save('atendimentos-odonto-emsi.pdf');
+}
+
+function pdfNutricao(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
+  let y=_pdfCabecalho(doc,'🥦 Atendimentos Nutricionais');
+  y=_pdfTabela(doc,y,['Data','Paciente','Peso','Altura','IMC','Classificação','Diagnóstico','Retorno'],
+    atendNut.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return[fmtData(r.data_atendimento),pac?.nome||'—',r.peso||'—',r.altura||'—',r.imc||'—',r.classificacao_imc||'—',r.diagnostico_nutricional||'—',fmtData(r.data_retorno)];}));
+  _pdfRodape(doc);doc.save('atendimentos-nutricao-emsi.pdf');
+}
+
+function pdfSocial(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
+  let y=_pdfCabecalho(doc,'🤝 Atendimentos Sociais');
+  y=_pdfTabela(doc,y,['Data','Paciente','Demanda','Vulnerabilidades','Encaminhamentos','Benefícios'],
+    atendSoc.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return[fmtData(r.data_atendimento),pac?.nome||'—',r.demanda||'—',r.vulnerabilidades||'—',r.encaminhamentos||'—',r.beneficios||'—'];}));
+  _pdfRodape(doc);doc.save('atendimentos-social-emsi.pdf');
+}
+
+function pdfMental(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
+  let y=_pdfCabecalho(doc,'🧠 Saúde Mental');
+  y=_pdfStats(doc,y,[
+    {l:'Total',v:dadosMental.length},{l:'Psicotrópicos',v:dadosMental.filter(r=>r.usa_psicotropico).length},
+    {l:'Risco Alto',v:dadosMental.filter(r=>r.risco_suicidio==='alto'||r.risco_suicidio==='iminente').length},{l:'Tent. Suicídio',v:dadosMental.filter(r=>r.tentativa_suicidio).length},
+  ]);
+  y=_pdfTabela(doc,y,['Data','Paciente','Tipo','CID','Diagnóstico','Psicotrópico','Violência','Risco','Tent. Suicídio'],
+    dadosMental.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return[fmtData(r.data_atendimento),pac?.nome||'—',r.tipo_atendimento||'—',r.cid10||'—',r.diagnostico||'—',r.usa_psicotropico?'Sim':'Não',r.situacao_violencia||'Não',r.risco_suicidio||'—',r.tentativa_suicidio?'SIM':'Não'];}));
+  _pdfRodape(doc);doc.save('saude-mental-emsi.pdf');
+}
+
+function pdfCras(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
+  let y=_pdfCabecalho(doc,'🏛️ CRAS / CREAS');
+  y=_pdfTabela(doc,y,['Data','Paciente/Família','Serviço','Demanda','Situação Familiar','Benefício','Encam.'],
+    dadosCras.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return[fmtData(r.data_atendimento),pac?.nome||'—',r.servico||'—',r.tipo_demanda||'—',r.situacao_familiar||'—',r.beneficio_acessado||'—',r.encaminhamento||'—'];}));
+  _pdfRodape(doc);doc.save('cras-creas-emsi.pdf');
+}
+
+function pdfCT(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
+  let y=_pdfCabecalho(doc,'👨‍⚖️ Conselho Tutelar');
+  y=_pdfTabela(doc,y,['Data','Criança/Adolescente','Tipo Violação','Agressor','Status','Medida','Encam.'],
+    dadosCT.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return[fmtData(r.data_atendimento),pac?.nome||'—',r.tipo_violacao||'—',r.agressor||'—',r.status_caso||'—',r.medida_aplicada||'—',r.encaminhamento||'—'];}));
+  _pdfRodape(doc);doc.save('conselho-tutelar-emsi.pdf');
+}
+
+function pdfSeg(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
+  let y=_pdfCabecalho(doc,'🚔 Segurança Pública');
+  y=_pdfTabela(doc,y,['Data','Indígena','Tipo','Envolvimento','Local','BO','Encam.'],
+    dadosSeg.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return[fmtData(r.data_atendimento),pac?.nome||'—',r.tipo_ocorrencia||'—',r.envolvimento||'—',r.local||'—',r.boletim_ocorrencia||'—',r.encaminhamento||'—'];}));
+  _pdfRodape(doc);doc.save('seguranca-publica-emsi.pdf');
+}
+
+function pdfSSM(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
+  let y=_pdfCabecalho(doc,'🏥 Secretaria de Saúde Municipal');
+  y=_pdfTabela(doc,y,['Data','Paciente','Tipo','Serviço','Motivo','Encam.','Retorno','Status'],
+    dadosSSM.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return[fmtData(r.data_atendimento),pac?.nome||'—',r.tipo_notificacao||'—',r.servico||'—',r.motivo||'—',r.encaminhamento||'—',fmtData(r.data_retorno),r.status||'—'];}));
+  _pdfRodape(doc);doc.save('sec-saude-municipal-emsi.pdf');
+}
+
+function pdfObitos(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
+  let y=_pdfCabecalho(doc,'⚫ Registro de Óbitos');
+  y=_pdfStats(doc,y,[
+    {l:'Total Óbitos',v:dadosObitos.length},{l:'Causas Externas',v:dadosObitos.filter(o=>o.categoria_causa==='Causas Externas').length},
+    {l:'Infantis (0-5a)',v:dadosObitos.filter(o=>o.idade_obito<=5).length},{l:'Suicídios',v:dadosObitos.filter(o=>o.causa_obito==='Suicídio').length},
+  ]);
+  y=_pdfTabela(doc,y,['Nome','Data Óbito','Aldeia','Sexo','Idade','Categoria','Causa','CID','Local'],
+    dadosObitos.map(o=>[o.nome_falecido||'—',fmtData(o.data_obito),o.aldeia||'—',o.sexo||'—',o.idade_obito!==null?o.idade_obito+'a':'—',o.categoria_causa||'—',o.causa_obito||'—',o.cid10||'—',o.local_obito||'—']));
+  _pdfRodape(doc);doc.save('obitos-emsi.pdf');
+}
+
+function exportFarmPDF(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF();
+  let y=_pdfCabecalho(doc,'💊 Farmácia — Estoque');
+  y=_pdfTabela(doc,y,['Medicamento','Categoria','Unidade','Qtd. Atual','Qtd. Mínima','Status'],
+    estoqueAtual.map(f=>[f.nome||'—',f.categoria||'—',f.unidade||'—',String(f.quantidade_atual),String(f.quantidade_minima),f.quantidade_atual<=f.quantidade_minima?'⚠️ CRÍTICO':f.quantidade_atual<=f.quantidade_minima*2?'BAIXO':'OK']));
+  _pdfRodape(doc);doc.save('estoque-farmacia-emsi.pdf');
+}
+
+function exportInsPDF(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF();
+  let y=_pdfCabecalho(doc,'🔬 Insumos Odontológicos');
+  y=_pdfTabela(doc,y,['Insumo','Categoria','Unidade','Qtd. Atual','Qtd. Mínima','Status'],
+    insumosAtual.map(f=>[f.nome||'—',f.categoria||'—',f.unidade||'—',String(f.quantidade_atual),String(f.quantidade_minima),f.quantidade_atual<=f.quantidade_minima?'⚠️ CRÍTICO':'OK']));
+  _pdfRodape(doc);doc.save('insumos-odonto-emsi.pdf');
+}
+
+function gerarPDFCompleto(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
+  let y=_pdfCabecalho(doc,'📄 Relatório Consolidado — EMSI Polo Base Guaíra');
+  const mes=gV('sel-mes');const ano=gV('sel-ano');
+  doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(13,32,64);
+  doc.text(`Período: ${MN[parseInt(mes)]} / ${ano}`,14,y);y+=8;
+  y=_pdfTabela(doc,y,['Módulo','Total'],[ 
+    ['👥 Pacientes Cadastrados',pacientes.length],
+    ['🩺 Atendimentos Médicos',atendMed.length],
+    ['🦷 Atendimentos Odontológicos',atendOdo.length],
+    ['🥦 Atendimentos Nutricionais',atendNut.length],
+    ['🤝 Atendimentos Sociais',atendSoc.length],
+    ['🤰 Gestantes Acompanhadas',gestantes.length],
+    ['💉 Vacinas Aplicadas',vacinasPac.filter(v=>v.status==='aplicada').length],
+    ['💉 Vacinas Atrasadas',vacinasPac.filter(v=>v.status==='atrasada').length],
+    ['🧠 Atend. Saúde Mental',dadosMental.length],
+    ['💊 Usuários Psicotrópicos',dadosMental.filter(r=>r.usa_psicotropico).length],
+    ['🆘 Tentativas de Suicídio',dadosMental.filter(r=>r.tentativa_suicidio).length],
+    ['🏛️ Atend. CRAS/CREAS',dadosCras.length],
+    ['👨‍⚖️ Ocorr. Conselho Tutelar',dadosCT.length],
+    ['🚔 Ocorr. Segurança Pública',dadosSeg.length],
+    ['🏥 Notif. Sec. Saúde Municipal',dadosSSM.length],
+    ['⚫ Óbitos Registrados',dadosObitos.length],
+    ['📢 Atividades Educativas',dadosEducacao.length],
+  ],'');
+  _pdfRodape(doc);doc.save('relatorio-completo-emsi.pdf');
+}
+
+// ===================== VACINAS — FUNÇÕES NOVAS =====================
+function toggleVacinaManual(){
+  const v=gV('mvp-vacina-sel');
+  const wrap=document.getElementById('mvp-vacina-manual-wrap');
+  if(wrap)wrap.style.display=v==='Outra (digitar)'?'':'none';
+}
+function toggleCatManual(){
+  const v=gV('mvp-cat');
+  const wrap=document.getElementById('mvp-cat-manual-wrap');
+  if(wrap)wrap.style.display=v==='Manual'?'':'none';
+}
+function calcCategoriaPorIdade(){
+  const pacId=gV('nova-vac-pac');
+  const pac=pacientes.find(p=>p.id===pacId);
+  if(!pac?.data_nascimento)return;
+  const nasc=new Date(pac.data_nascimento);
+  const hoje=new Date();
+  const meses=Math.floor((hoje-nasc)/(1000*60*60*24*30.44));
+  const anos=Math.floor(meses/12);
+  const sel=document.getElementById('mvp-cat');
+  if(!sel)return;
+  let cat='';
+  if(meses<1)cat='RN';
+  else if(meses<2)cat='1 mês';
+  else if(meses<3)cat='2 meses';
+  else if(meses<4)cat='3 meses';
+  else if(meses<5)cat='4 meses';
+  else if(meses<6)cat='5 meses';
+  else if(meses<7)cat='6 meses';
+  else if(meses<9)cat='7 meses';
+  else if(meses<10)cat='9 meses';
+  else if(meses<12)cat='10 meses';
+  else if(meses<15)cat='12 meses';
+  else if(meses<18)cat='15 meses';
+  else if(meses<24)cat='18 meses';
+  else if(meses<30)cat='24 meses';
+  else if(anos<4)cat='3 anos';
+  else if(anos<21)cat=`${anos} anos`;
+  else if(anos<31)cat='21-30 anos';
+  else if(anos<41)cat='31-40 anos';
+  else if(anos<51)cat='41-50 anos';
+  else if(anos<61)cat='51-60 anos';
+  else if(anos<71)cat='61-70 anos';
+  else if(anos<81)cat='71-80 anos';
+  else if(anos<91)cat='81-90 anos';
+  else if(anos<101)cat='91-100 anos';
+  else cat='101-130 anos';
+  // Seleciona a opção correspondente
+  for(let i=0;i<sel.options.length;i++){if(sel.options[i].value===cat){sel.selectedIndex=i;break;}}
+}
+
+// Sobrescreve salvarVacPac para usar novos campos
+async function salvarVacPac(){
+  const pac=gV('nova-vac-pac');if(!pac){alert('Selecione o paciente.');return;}
+  const vacinaSel=gV('mvp-vacina-sel');
+  const vacina=vacinaSel==='Outra (digitar)'?gV('mvp-vacina-manual'):vacinaSel;
+  const catSel=gV('mvp-cat');
+  const categoria=catSel==='Manual'?gV('mvp-cat-manual'):catSel;
+  const dados={paciente_id:pac,vacina,categoria,status:gV('mvp-status'),data_prevista:gV('mvp-prevista')||null,data_aplicada:gV('mvp-aplicada')||null,lote:gV('mvp-lote'),user_id:usuarioAtual.id};
+  const {error}=await sb.from('vacinas_paciente').insert(dados);
+  if(!error){showMsg('msg-vac-pac','ok');await carregarVacinasPac();renderVacinasPacientes();setTimeout(()=>fecharModal('modal-vac-pac'),1500);}
+  else alert('Erro: '+error.message);
+}
+
+// ===================== INSUMOS — SAÍDA =====================
+let saidasInsAtual=[];
+async function registrarSaidaIns(){
+  const id=gV('ins-saida-id');const qtd=parseInt(gV('ins-saida-qtd'))||1;
+  const pacId=gV('ins-saida-pac');const motivo=gV('ins-saida-motivo');
+  const item=insumosAtual.find(f=>f.id===id);if(!item){alert('Selecione o insumo.');return;}
+  const nova=Math.max(0,item.quantidade_atual-qtd);
+  await sb.from('insumos_odonto').update({quantidade_atual:nova}).eq('id',id);
+  await sb.from('insumos_odonto_mov').insert({insumo_id:id,nome_item:item.nome,quantidade:qtd,tipo:'saida',paciente_id:pacId||null,motivo,user_id:usuarioAtual.id});
+  showMsg('msg-ins-saida','ok');await carregarInsumos();renderSaidasIns();
+}
+async function renderSaidasIns(){
+  const {data}=await sb.from('insumos_odonto_mov').select('*').order('criado_em',{ascending:false}).limit(50);
+  saidasInsAtual=data||[];
+  const tbody=document.getElementById('tbody-ins-saidas');if(!tbody)return;
+  tbody.innerHTML=saidasInsAtual.map(s=>{const pac=pacientes.find(p=>p.id===s.paciente_id);return`<tr><td>${s.criado_em?new Date(s.criado_em).toLocaleDateString('pt-BR'):'—'}</td><td style="font-weight:700">${s.nome_item||'—'}</td><td>${s.quantidade}</td><td>${pac?.nome||'—'}</td><td>${s.motivo||'—'}</td></tr>`;}).join('');
+  if(!saidasInsAtual.length)tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--cinza);padding:14px">Nenhuma saída registrada.</td></tr>';
+  // Popula select de insumos para saída
+  const sel=document.getElementById('ins-saida-id');
+  if(sel)sel.innerHTML=insumosAtual.map(f=>`<option value="${f.id}">${f.nome} (${f.quantidade_atual} ${f.unidade})</option>`).join('');
+  // Popula select de pacientes no insumos
+  const selPac=document.getElementById('ins-saida-pac');
+  if(selPac)selPac.innerHTML='<option value="">— Sem paciente —</option>'+pacientes.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
+}
+
+// Sobrescreve cadastrarIns para aceitar categoria manual
+async function cadastrarIns(){
+  const nome=gV('ins-nome');if(!nome)return;
+  const catSel=gV('ins-cat');
+  const catManual=gV('ins-cat-manual');
+  const categoria=catManual.trim()||catSel;
+  const dados={nome,categoria,unidade:gV('ins-unidade'),quantidade_atual:parseInt(gV('ins-qtd-ini'))||0,quantidade_minima:parseInt(gV('ins-qtd-min'))||5,user_id:usuarioAtual.id};
+  const {error}=await sb.from('insumos_odonto').insert(dados);
+  if(!error){showMsg('msg-ins-cad','ok');await carregarInsumos();renderSaidasIns();}
+  else alert('Erro: '+error.message);
+}
+
+// ===================== EDUCAÇÃO EM SAÚDE =====================
+let dadosEducacao=[];
+function toggleEduLocal(){
+  const v=gV('edu-local-sel');
+  const w=document.getElementById('edu-local-manual-wrap');
+  if(w)w.style.display=v==='Outro'?'':'none';
+}
+async function salvarEducacao(){
+  const localSel=gV('edu-local-sel');
+  const local=localSel==='Outro'?gV('edu-local-manual'):localSel;
+  const dados={
+    data_atividade:gV('edu-data')||null,categoria:gV('edu-cat'),tema:gV('edu-tema'),
+    local,aldeia:gV('edu-aldeia'),num_participantes:parseInt(gV('edu-participantes'))||0,
+    publico_alvo:gV('edu-publico'),profissional:gV('edu-profissional'),
+    proxima_data:gV('edu-proxima')||null,proximo_tema:gV('edu-prox-tema'),
+    observacoes:gV('edu-obs'),user_id:usuarioAtual.id
+  };
+  const {error}=await sb.from('educacao_saude').insert(dados);
+  if(!error){showMsg('msg-edu','ok');await carregarEducacao();renderEducacaoTabela();renderStatsEducacao();}
+  else alert('Erro: '+error.message);
+}
+async function carregarEducacao(){
+  const {data}=await sb.from('educacao_saude').select('*').order('data_atividade',{ascending:false});
+  dadosEducacao=data||[];
+}
+function renderEducacaoTabela(){
+  const filtro=gV('filtro-edu-cat');
+  let lista=filtro==='todos'?dadosEducacao:dadosEducacao.filter(r=>r.categoria===filtro);
+  const tbody=document.getElementById('tbody-edu');if(!tbody)return;
+  tbody.innerHTML=lista.map(r=>`<tr>
+    <td>${fmtData(r.data_atividade)}</td>
+    <td><span class="badge badge-azul">${r.categoria||'—'}</span></td>
+    <td style="font-weight:700">${r.tema||'—'}</td>
+    <td>${r.local||'—'}</td>
+    <td>${r.aldeia||'—'}</td>
+    <td>${r.publico_alvo||'—'}</td>
+    <td style="font-weight:700;color:var(--azul-claro)">${r.num_participantes||0}</td>
+    <td>${r.profissional||'—'}</td>
+    <td class="ok">${fmtData(r.proxima_data)}</td>
+  </tr>`).join('');
+  if(!lista.length)tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--cinza);padding:14px">Nenhuma atividade registrada.</td></tr>';
+}
+function renderStatsEducacao(){
+  const el=document.getElementById('stats-educacao');if(!el)return;
+  const totalPart=dadosEducacao.reduce((a,r)=>a+(r.num_participantes||0),0);
+  el.innerHTML=[
+    {l:'Total Atividades',v:dadosEducacao.length,t:'',i:'📢'},
+    {l:'Total Participantes',v:totalPart,t:'verde',i:'👥'},
+    {l:'Outubro Rosa',v:dadosEducacao.filter(r=>r.categoria==='Outubro Rosa').length,t:'rosa',i:'🎀'},
+    {l:'Setembro Amarelo',v:dadosEducacao.filter(r=>r.categoria==='Setembro Amarelo').length,t:'amarelo',i:'💛'},
+    {l:'Saúde Bucal',v:dadosEducacao.filter(r=>r.categoria==='Saúde Bucal').length,t:'roxo',i:'🦷'},
+    {l:'Saúde da Criança',v:dadosEducacao.filter(r=>r.categoria==="Saúde da Criança").length,t:'teal',i:'👶'},
+  ].map(s=>`<div class="stat ${s.t}"><div style="font-size:1.1rem;margin-bottom:2px">${s.i}</div><div class="stat-n">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
+}
+function pdfEducacao(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
+  let y=_pdfCabecalho(doc,'📢 Educação em Saúde — Atividades e Palestras');
+  const totalPart=dadosEducacao.reduce((a,r)=>a+(r.num_participantes||0),0);
+  y=_pdfStats(doc,y,[{l:'Total Atividades',v:dadosEducacao.length},{l:'Total Participantes',v:totalPart}]);
+  y=_pdfTabela(doc,y,['Data','Categoria','Tema','Local','Aldeia','Público','Participantes','Profissional','Próxima'],
+    dadosEducacao.map(r=>[fmtData(r.data_atividade),r.categoria||'—',r.tema||'—',r.local||'—',r.aldeia||'—',r.publico_alvo||'—',String(r.num_participantes||0),r.profissional||'—',fmtData(r.proxima_data)]));
+  _pdfRodape(doc);doc.save('educacao-saude-emsi.pdf');
+}
+
+// ===================== CHAT EQUIPE =====================
+let chatMsgs=[];
+let chatCanal=null;
+function iniciarChat(){
+  try{
+    chatCanal=sb.channel('emsi-chat',{config:{broadcast:{self:true}}});
+    chatCanal.on('broadcast',{event:'mensagem'},({payload})=>{
+      try{adicionarMsgChat(payload);}catch(e){}
+    }).subscribe((status)=>{
+      console.log('Chat status:',status);
+    });
+  }catch(e){console.warn('Chat init error:',e);}
+}
+function adicionarMsgChat(msg){
+  const box=document.getElementById('chat-msgs');if(!box)return;
+  const isMe=msg.user_id===usuarioAtual?.id;
+  const d=document.createElement('div');
+  d.style.cssText=`display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'};max-width:75%;align-self:${isMe?'flex-end':'flex-start'}`;
+  d.innerHTML=`
+    <div style="font-size:.62rem;color:var(--cinza);margin-bottom:2px">${msg.nome} · ${new Date(msg.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+    <div style="background:${isMe?'var(--azul-claro)':'white'};color:${isMe?'white':'var(--texto)'};border-radius:${isMe?'12px 12px 2px 12px':'12px 12px 12px 2px'};padding:8px 12px;font-size:.82rem;box-shadow:var(--sombra);max-width:100%">${msg.texto}</div>`;
+  // Remove placeholder se existir
+  const placeholder=box.querySelector('div[style*="text-align:center"]');if(placeholder)placeholder.remove();
+  box.appendChild(d);
+  box.scrollTop=box.scrollHeight;
+}
+async function enviarChat(){
+  const input=document.getElementById('chat-input');
+  const texto=input?.value?.trim();
+  if(!texto)return;
+  const nome=perfilAtual?.nome||usuarioAtual?.email||'Profissional';
+  const msg={user_id:usuarioAtual.id,nome,texto,ts:new Date().toISOString()};
+  await chatCanal.send({type:'broadcast',event:'mensagem',payload:msg});
+  input.value='';
+}
+
+// ===================== ONLINE/OFFLINE + STATS TEMPO REAL =====================
+let _bytesAntes=0;let _tsAntes=Date.now();
+function monitorarConexao(){
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.style.display=v;};
+  const setTxt=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  window.addEventListener('online',()=>{
+    setEl('status-online','flex');setEl('status-offline','none');
+    setTxt('status-txt','Online');mostrarNotif('🟢 Conexão restaurada!');
+  });
+  window.addEventListener('offline',()=>{
+    setEl('status-online','none');setEl('status-offline','flex');
+    mostrarNotif('🔴 Sem conexão com a internet');
+  });
+  if(!navigator.onLine){setEl('status-online','none');setEl('status-offline','flex');}
+}
+
+// Monitorar presença (usuários conectados)
+function iniciarPresenca(){
+  const canalPresenca=sb.channel('emsi-presenca',{
+    config:{presence:{key:usuarioAtual.id}}
+  });
+  const nome=perfilAtual?.nome||usuarioAtual?.email||'Profissional';
+  canalPresenca.on('presence',{event:'sync'},()=>{
+    const state=canalPresenca.presenceState();
+    const count=Object.keys(state).length;
+    const el=document.getElementById('num-conectados');
+    if(el)el.textContent=count;
+  }).subscribe(async(status)=>{
+    if(status==='SUBSCRIBED'){
+      await canalPresenca.track({nome,online_at:new Date().toISOString()});
+    }
+  });
+}
+
+// Estimativa de velocidade de dados
+function monitorarVelocidade(){
+  setInterval(async()=>{
+    try{
+      const t0=Date.now();
+      await fetch(`${SB_URL}/rest/v1/pacientes?select=id&limit=1`,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'}});
+      const ms=Date.now()-t0;
+      const el=document.getElementById('badge-speed');
+      if(el)el.textContent=ms<200?'⚡ Rápido':ms<500?'🟢 Bom':ms<1500?'🟡 Médio':'🔴 Lento';
+    }catch(e){}
+  },10000);
+}
+
+// Auto-atualização a cada 3 minutos
+function iniciarAutoAtualizar(){
+  setInterval(async()=>{
+    if(!usuarioAtual||!navigator.onLine)return;
+    try{await carregarTudo();}catch(e){}
+  },180000);
+}
+
+// Lembrete de descanso ocular (regra 20-20-20)
+function iniciarLembreteOlhos(){
+  let minutosOnline=0;
+  setInterval(()=>{
+    minutosOnline++;
+    if(minutosOnline>0&&minutosOnline%20===0){
+      const d=document.createElement('div');
+      d.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(13,32,64,.88);color:white;border-radius:12px;padding:10px 18px;font-size:.74rem;font-weight:600;z-index:9999;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,.3);backdrop-filter:blur(8px)';
+      d.innerHTML='👁️ Você está online há <strong>'+minutosOnline+'min</strong>. Olhe para longe por 20 segundos para descansar os olhos. <button onclick="this.parentNode.remove()" style="background:none;border:none;color:#6ee7b7;cursor:pointer;margin-left:8px;font-size:1rem">✕</button>';
+      document.body.appendChild(d);
+      setTimeout(()=>{if(d.parentNode)d.remove();},8000);
+    }
+  },60000);
+}
+</script>
+</body>
+</html>
