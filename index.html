@@ -1452,27 +1452,35 @@ async function fazerLogin(){
   const senha=document.getElementById('inp-senha').value;
   const btn=document.getElementById('btn-entrar');
   const erro=document.getElementById('login-erro');
-  if(!email||!senha){erro.textContent='Preencha e-mail e senha.';erro.style.display='block';return;}
-  erro.style.display='none';btn.textContent='Conectando ao servidor...';btn.disabled=true;
-  erro.textContent='Aguarde...';erro.style.display='block';erro.style.color='#1a5ba0';erro.style.background='#eff6ff';erro.style.borderColor='#93c5fd';
-    try{
-        const resultado=await sb.auth.signInWithPassword({email,password:senha});
-        const data=resultado.data;
-    const error=resultado.error;
+  if(!email||!senha){
+    erro.textContent='Preencha e-mail e senha.';
+    erro.style.cssText='display:block;color:var(--vermelho);background:#fff5f5;border-color:var(--vermelho)';
+    return;
+  }
+  erro.style.display='none';
+  btn.textContent='Entrando...';
+  btn.disabled=true;
+  try{
+    const {data,error}=await sb.auth.signInWithPassword({email,password:senha});
     if(error){
-      let msg='Erro: '+error.message;
-      if(error.message.includes('Invalid login')||error.message.includes('invalid_credentials'))msg='E-mail ou senha incorretos.';
-      else if(error.message.includes('Email not confirmed'))msg='E-mail não confirmado. Verifique sua caixa de entrada.';
-      else if(error.message.includes('network')||error.message.includes('fetch'))msg='Erro de conexão. Verifique sua internet.';
-      erro.textContent=msg;erro.style.display='block';btn.textContent='Entrar';btn.disabled=false;return;
+      let msg='E-mail ou senha incorretos.';
+      if(error.message&&error.message.includes('Email not confirmed'))msg='E-mail não confirmado. Verifique sua caixa de entrada.';
+      else if(error.message&&(error.message.includes('network')||error.message.includes('fetch')))msg='Erro de conexão. Verifique sua internet.';
+      erro.textContent=msg;
+      erro.style.cssText='display:block;color:var(--vermelho);background:#fff5f5;border-color:var(--vermelho)';
+      btn.textContent='Entrar';btn.disabled=false;
+      return;
     }
     if(!data||!data.user){
-      erro.textContent='Não foi possível autenticar. Tente novamente.';erro.style.display='block';btn.textContent='Entrar';btn.disabled=false;return;
+      erro.textContent='Não foi possível autenticar. Tente novamente.';
+      erro.style.cssText='display:block;color:var(--vermelho);background:#fff5f5;border-color:var(--vermelho)';
+      btn.textContent='Entrar';btn.disabled=false;
+      return;
     }
     await iniciarApp(data.user);
   }catch(e){
-    erro.textContent='Erro: '+(e.message||'Verifique sua internet e tente novamente.');
-    erro.style.display='block';
+    erro.textContent='Erro de conexão: '+(e.message||'Verifique sua internet.');
+    erro.style.cssText='display:block;color:var(--vermelho);background:#fff5f5;border-color:var(--vermelho)';
     btn.textContent='Entrar';btn.disabled=false;
   }
 }
@@ -1528,8 +1536,9 @@ async function iniciarApp(user){
 
 async function fazerLogout(){_rtAtivo=false;_rtLimparCanais();await sb.auth.signOut();location.reload();}
 sb.auth.getSession().then(({data})=>{
-    if(data?.session?.user)iniciarApp(data.session.user);
-}).catch(e=>
+  if(data?.session?.user)iniciarApp(data.session.user);
+}).catch(e=>{console.warn('Erro getSession:',e);});
+
 // ===================== REALTIME =====================
 // Compatível com Cloudflare Pages — WebSocket com reconexão automática
 let _rtCanais=[];
