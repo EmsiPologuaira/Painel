@@ -2968,11 +2968,9 @@ function monitorarConexao(){
 }
 
 // ===================== PRESENÇA — PROFISSIONAIS CONECTADOS =====================
-function _atualizarBadgeConectados(){
+function _atualizarBadgeConectados(state){
   try{
-    const state=_presencaCanal.presenceState();
-    // Cada chave do state é um user_id, o valor é array com os dados do track
-    const usuarios=Object.values(state).map(arr=>arr[0]||{});
+    const usuarios=Object.values(state||{}).flat().filter(Boolean);
     const count=usuarios.length;
     const elN=document.getElementById('num-conectados');
     if(elN)elN.textContent=count;
@@ -2980,8 +2978,8 @@ function _atualizarBadgeConectados(){
     if(elC)elC.textContent=count;
     const badge=document.getElementById('badge-conectados');
     if(badge){
-      const nomes=usuarios.map(u=>u.nome||'Profissional').filter(Boolean).join(', ');
-      badge.title='Online agora: '+nomes;
+      const nomes=usuarios.map(u=>u.nome||u.email||'Profissional').join(', ');
+      badge.title='Online: '+nomes;
     }
   }catch(e){}
 }
@@ -2990,43 +2988,53 @@ function iniciarPresenca(){
   try{
     const nome=perfilAtual?.nome||usuarioAtual?.email||'Profissional';
     const cargo=perfilAtual?.tipo||'profissional';
-    // key único por usuário (string obrigatória)
-    const chave=usuarioAtual.id;
+    const chave=String(usuarioAtual.id);
 
-    _presencaCanal=sb.channel('emsi-online',{
+    // Remover canal anterior se existir
+    if(_presencaCanal){try{sb.removeChannel(_presencaCanal);}catch(e){}}
+
+    _presencaCanal=sb.channel('emsi-presenca-v3',{
       config:{presence:{key:chave}}
     });
 
     _presencaCanal
       .on('presence',{event:'sync'},()=>{
-        _atualizarBadgeConectados();
+        const state=_presencaCanal.presenceState();
+        _atualizarBadgeConectados(state);
       })
       .on('presence',{event:'join'},({key,newPresences})=>{
-        // Não notificar a si mesmo
-        if(key===chave)return;
-        const p=newPresences[0]||{};
-        mostrarNotif('🟢 '+(p.nome||'Profissional')+' entrou no sistema');
-        _atualizarBadgeConectados();
+        const state=_presencaCanal.presenceState();
+        _atualizarBadgeConectados(state);
+        if(key!==chave){
+          const p=(newPresences||[])[0]||{};
+          mostrarNotif('🟢 '+(p.nome||'Profissional')+' entrou');
+        }
       })
       .on('presence',{event:'leave'},({key,leftPresences})=>{
-        if(key===chave)return;
-        const p=leftPresences[0]||{};
-        mostrarNotif('🔴 '+(p.nome||'Profissional')+' saiu do sistema');
-        _atualizarBadgeConectados();
+        const state=_presencaCanal.presenceState();
+        _atualizarBadgeConectados(state);
+        if(key!==chave){
+          const p=(leftPresences||[])[0]||{};
+          mostrarNotif('🔴 '+(p.nome||'Profissional')+' saiu');
+        }
       })
       .subscribe(async(status)=>{
         if(status==='SUBSCRIBED'){
-          // Registrar presença com dados do profissional
-          await _presencaCanal.track({
-            nome,
-            cargo,
-            user_id:chave,
-            online_at:new Date().toISOString()
-          });
+          try{
+            await _presencaCanal.track({nome,cargo,online_at:new Date().toISOString()});
+            // Forçar sync após track
+            setTimeout(()=>{
+              try{
+                const state=_presencaCanal.presenceState();
+                _atualizarBadgeConectados(state);
+              }catch(e){}
+            },500);
+          }catch(e){console.warn('track error:',e);}
         }
       });
   }catch(e){console.warn('Presença error:',e);}
 }
+
 
 // Estimativa de velocidade de dados
 function monitorarVelocidade(){
