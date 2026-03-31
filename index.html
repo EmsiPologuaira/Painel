@@ -239,11 +239,6 @@ td.zero{color:#ccc}
 <!-- NOTIFICAÇÕES REALTIME -->
 <div class="notif-realtime" id="notif-container"></div>
 
-<!-- DIAGNÓSTICO VISÍVEL -->
-<div id="diag-box" style="position:fixed;bottom:0;left:0;right:0;background:#111;color:#0f0;font-family:monospace;font-size:11px;padding:8px 12px;z-index:99999;max-height:160px;overflow-y:auto;border-top:2px solid #0f0">
-  <strong style="color:#ff0">🔍 DIAGNÓSTICO:</strong>
-  <div id="diag-log"></div>
-</div>
 
 <!-- MODAIS -->
 <div class="modal-overlay" id="modal-pac">
@@ -1279,14 +1274,14 @@ td.zero{color:#ccc}
     </div>
     <div style="background:white;border-radius:var(--radius);box-shadow:var(--sombra);display:flex;flex-direction:column;height:500px">
       <div id="chat-msgs" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px">
-        <div style="text-align:center;color:var(--cinza);font-size:.74rem;padding:20px">💬 Seja o primeiro a enviar uma mensagem para a equipe!</div>
+        <div data-placeholder style="text-align:center;color:var(--cinza);font-size:.74rem;padding:20px">💬 Carregando mensagens...</div>
       </div>
       <div style="border-top:1.5px solid var(--cinza-claro);padding:10px;display:flex;gap:8px;align-items:center">
         <input id="chat-input" placeholder="Digite sua mensagem..." style="flex:1;border:1.5px solid var(--cinza-claro);border-radius:8px;padding:9px 12px;font-family:'Sora',sans-serif;font-size:.82rem;outline:none" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarChat();}">
         <button class="btn btn-primary btn-sm" onclick="enviarChat()">📤 Enviar</button>
       </div>
     </div>
-    <div class="info-box ib-azul" style="margin-top:10px">💬 Mensagens visíveis apenas para profissionais conectados. Não substitui comunicação oficial.</div>
+    <div class="info-box ib-azul" style="margin-top:10px">💬 Mensagens ficam visíveis por <strong>24 horas</strong> e são apagadas automaticamente. Histórico carregado ao entrar. Não substitui comunicação oficial.</div>
   </div></div>
 
   <!-- ===== RELATÓRIO ===== -->
@@ -1350,31 +1345,12 @@ td.zero{color:#ccc}
 </div>
 
 <script>
-// ===================== DIAGNÓSTICO =====================
-function diag(msg,cor){
-  const el=document.getElementById('diag-log');
-  if(!el)return;
-  const d=document.createElement('div');
-  d.style.color=cor||'#0f0';
-  d.textContent=new Date().toLocaleTimeString()+' — '+msg;
-  el.appendChild(d);
-  el.scrollTop=el.scrollHeight;
-}
-window.onerror=function(msg,src,linha,col,err){
-  diag('❌ ERRO JS: '+msg+' (linha '+linha+')', '#f55');
-  return false;
-};
-window.addEventListener('unhandledrejection',function(e){
-  diag('❌ PROMISE REJEITADA: '+(e.reason?.message||e.reason||'desconhecido'),'#f55');
-});
-diag('✅ Script iniciando...','#ff0');
 
 // ===================== CONFIGURAÇÃO SUPABASE =====================
 const SB_URL='https://ljievfynpgahvmxvnkqa.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqaWV2ZnlucGdhaHZteHZua3FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MTczNzAsImV4cCI6MjA5MDI5MzM3MH0.4Jy5DUozw8FNBsw5tAHLKfPn0WtfqgNWN8F8SSnMbmg';
 const {createClient}=window.supabase||supabase;
 if(!createClient){document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:red;font-size:1.1rem">Erro: SDK Supabase não carregou. Verifique sua conexão e recarregue.</div>';throw new Error('SDK não carregou');}
-diag('🔌 Criando cliente Supabase...','#ff0');
 const sb=createClient(SB_URL,SB_KEY,{
   realtime:{
     params:{eventsPerSecond:10},
@@ -1479,12 +1455,9 @@ async function fazerLogin(){
   if(!email||!senha){erro.textContent='Preencha e-mail e senha.';erro.style.display='block';return;}
   erro.style.display='none';btn.textContent='Conectando ao servidor...';btn.disabled=true;
   erro.textContent='Aguarde...';erro.style.display='block';erro.style.color='#1a5ba0';erro.style.background='#eff6ff';erro.style.borderColor='#93c5fd';
-  diag('🔐 Tentando login: '+email,'#ff0');
-  try{
-    diag('📡 Chamando signInWithPassword...','#0ff');
-    const resultado=await sb.auth.signInWithPassword({email,password:senha});
-    diag('📥 Resposta recebida: error='+(resultado.error?.message||'nenhum'),'#0ff');
-    const data=resultado.data;
+    try{
+        const resultado=await sb.auth.signInWithPassword({email,password:senha});
+        const data=resultado.data;
     const error=resultado.error;
     if(error){
       let msg='Erro: '+error.message;
@@ -1555,10 +1528,8 @@ async function iniciarApp(user){
 
 async function fazerLogout(){_rtAtivo=false;_rtLimparCanais();await sb.auth.signOut();location.reload();}
 sb.auth.getSession().then(({data})=>{
-  diag('🔑 Sessão verificada: '+(data?.session?.user?'usuário ativo':'sem sessão'),'#0ff');
-  if(data?.session?.user)iniciarApp(data.session.user);
-}).catch(e=>diag('❌ Erro getSession: '+e.message,'#f55'));
-
+    if(data?.session?.user)iniciarApp(data.session.user);
+}).catch(e=>
 // ===================== REALTIME =====================
 // Compatível com Cloudflare Pages — WebSocket com reconexão automática
 let _rtCanais=[];
@@ -2889,43 +2860,90 @@ function pdfEducacao(){
 }
 
 // ===================== CHAT EQUIPE =====================
-let chatMsgs=[];
 let chatCanal=null;
+let _presencaCanal=null;
+
+// Carregar histórico das últimas 24h do Supabase
+async function carregarHistoricoChat(){
+  try{
+    const limite=new Date(Date.now()-24*60*60*1000).toISOString();
+    const {data}=await sb.from('chat_emsi').select('*').gte('criado_em',limite).order('criado_em',{ascending:true});
+    if(data&&data.length>0){
+      const box=document.getElementById('chat-msgs');
+      if(box){
+        box.innerHTML='';
+        data.forEach(m=>adicionarMsgChat({user_id:m.user_id,nome:m.nome,texto:m.texto,ts:m.criado_em},false));
+      }
+    }
+  }catch(e){console.warn('Erro histórico chat:',e);}
+}
+
+// Limpar mensagens com mais de 24h (chamado ao iniciar)
+async function limparMensagensAntigas(){
+  try{
+    const limite=new Date(Date.now()-24*60*60*1000).toISOString();
+    await sb.from('chat_emsi').delete().lt('criado_em',limite);
+  }catch(e){}
+}
+
 function iniciarChat(){
   try{
-    chatCanal=sb.channel('emsi-chat',{config:{broadcast:{self:true}}});
-    chatCanal.on('broadcast',{event:'mensagem'},({payload})=>{
-      try{adicionarMsgChat(payload);}catch(e){}
+    limparMensagensAntigas();
+    carregarHistoricoChat();
+    chatCanal=sb.channel('emsi-chat-v2',{config:{broadcast:{self:true}}});
+    chatCanal.on('broadcast',{event:'msg_nova'},({payload})=>{
+      try{adicionarMsgChat(payload,true);}catch(e){}
     }).subscribe((status)=>{
-      console.log('Chat status:',status);
+      const badge=document.getElementById('chat-online-badge');
+      if(status==='SUBSCRIBED'&&badge)badge.style.background='#dcfce7';
+      else if(badge)badge.style.background='#fee2e2';
     });
   }catch(e){console.warn('Chat init error:',e);}
 }
-function adicionarMsgChat(msg){
+
+function adicionarMsgChat(msg,animar=true){
   const box=document.getElementById('chat-msgs');if(!box)return;
   const isMe=msg.user_id===usuarioAtual?.id;
+  // Evitar duplicata pelo timestamp
+  if(document.getElementById('cmsg-'+msg.ts))return;
+  const placeholder=box.querySelector('div[data-placeholder]');if(placeholder)placeholder.remove();
   const d=document.createElement('div');
-  d.style.cssText=`display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'};max-width:75%;align-self:${isMe?'flex-end':'flex-start'}`;
+  d.id='cmsg-'+msg.ts;
+  d.style.cssText=`display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'};max-width:75%;align-self:${isMe?'flex-end':'flex-start'};${animar?'animation:slidein .3s ease':''}`;
+  const hora=new Date(msg.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  const data=new Date(msg.ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  const agora=new Date();
+  const msgData=new Date(msg.ts);
+  const mesmoDia=agora.toDateString()===msgData.toDateString();
+  const horaLabel=mesmoDia?hora:`${data} ${hora}`;
   d.innerHTML=`
-    <div style="font-size:.62rem;color:var(--cinza);margin-bottom:2px">${msg.nome} · ${new Date(msg.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
-    <div style="background:${isMe?'var(--azul-claro)':'white'};color:${isMe?'white':'var(--texto)'};border-radius:${isMe?'12px 12px 2px 12px':'12px 12px 12px 2px'};padding:8px 12px;font-size:.82rem;box-shadow:var(--sombra);max-width:100%">${msg.texto}</div>`;
-  // Remove placeholder se existir
-  const placeholder=box.querySelector('div[style*="text-align:center"]');if(placeholder)placeholder.remove();
+    <div style="font-size:.62rem;color:var(--cinza);margin-bottom:2px;${isMe?'text-align:right':''}">${isMe?'Você':msg.nome} · ${horaLabel}</div>
+    <div style="background:${isMe?'var(--azul-claro)':'white'};color:${isMe?'white':'var(--texto)'};border-radius:${isMe?'12px 12px 2px 12px':'12px 12px 12px 2px'};padding:8px 12px;font-size:.82rem;box-shadow:var(--sombra);max-width:100%;word-break:break-word">${msg.texto}</div>`;
   box.appendChild(d);
   box.scrollTop=box.scrollHeight;
 }
+
 async function enviarChat(){
   const input=document.getElementById('chat-input');
   const texto=input?.value?.trim();
-  if(!texto)return;
+  if(!texto||!usuarioAtual)return;
   const nome=perfilAtual?.nome||usuarioAtual?.email||'Profissional';
-  const msg={user_id:usuarioAtual.id,nome,texto,ts:new Date().toISOString()};
-  await chatCanal.send({type:'broadcast',event:'mensagem',payload:msg});
+  const ts=new Date().toISOString();
+  const msg={user_id:usuarioAtual.id,nome,texto,ts};
   input.value='';
+  // Salvar no banco (persistência 24h)
+  try{
+    await sb.from('chat_emsi').insert({user_id:usuarioAtual.id,nome,texto,criado_em:ts});
+  }catch(e){console.warn('Erro salvar chat:',e);}
+  // Broadcast para outros usuários em tempo real
+  try{
+    await chatCanal.send({type:'broadcast',event:'msg_nova',payload:msg});
+  }catch(e){}
+  // Mostrar imediatamente para quem enviou
+  adicionarMsgChat(msg,true);
 }
 
 // ===================== ONLINE/OFFLINE + STATS TEMPO REAL =====================
-let _bytesAntes=0;let _tsAntes=Date.now();
 function monitorarConexao(){
   const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.style.display=v;};
   const setTxt=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
@@ -2940,22 +2958,49 @@ function monitorarConexao(){
   if(!navigator.onLine){setEl('status-online','none');setEl('status-offline','flex');}
 }
 
-// Monitorar presença (usuários conectados)
+// ===================== PRESENÇA — PROFISSIONAIS CONECTADOS =====================
 function iniciarPresenca(){
-  const canalPresenca=sb.channel('emsi-presenca',{
-    config:{presence:{key:usuarioAtual.id}}
-  });
-  const nome=perfilAtual?.nome||usuarioAtual?.email||'Profissional';
-  canalPresenca.on('presence',{event:'sync'},()=>{
-    const state=canalPresenca.presenceState();
-    const count=Object.keys(state).length;
-    const el=document.getElementById('num-conectados');
-    if(el)el.textContent=count;
-  }).subscribe(async(status)=>{
-    if(status==='SUBSCRIBED'){
-      await canalPresenca.track({nome,online_at:new Date().toISOString()});
-    }
-  });
+  try{
+    _presencaCanal=sb.channel('emsi-presenca-v2',{
+      config:{presence:{key:usuarioAtual.id}}
+    });
+    const nome=perfilAtual?.nome||usuarioAtual?.email||'Profissional';
+    _presencaCanal
+      .on('presence',{event:'sync'},()=>{
+        try{
+          const state=_presencaCanal.presenceState();
+          const usuarios=Object.values(state).flat();
+          const count=usuarios.length;
+          // Badge header
+          const elN=document.getElementById('num-conectados');
+          if(elN)elN.textContent=count;
+          // Badge chat
+          const elC=document.getElementById('chat-online-count');
+          if(elC)elC.textContent=count;
+          // Tooltip com nomes
+          const badge=document.getElementById('badge-conectados');
+          if(badge){
+            const nomes=usuarios.map(u=>u.nome||'Profissional').join(', ');
+            badge.title='Online: '+nomes;
+          }
+        }catch(e){}
+      })
+      .on('presence',{event:'join'},({newPresences})=>{
+        newPresences.forEach(p=>{
+          if(p.key!==usuarioAtual.id)mostrarNotif('🟢 '+( p.nome||'Profissional')+' entrou');
+        });
+      })
+      .on('presence',{event:'leave'},({leftPresences})=>{
+        leftPresences.forEach(p=>{
+          if(p.key!==usuarioAtual.id)mostrarNotif('🔴 '+(p.nome||'Profissional')+' saiu');
+        });
+      })
+      .subscribe(async(status)=>{
+        if(status==='SUBSCRIBED'){
+          await _presencaCanal.track({nome,cargo:perfilAtual?.tipo||'profissional',online_at:new Date().toISOString()});
+        }
+      });
+  }catch(e){console.warn('Presença error:',e);}
 }
 
 // Estimativa de velocidade de dados
