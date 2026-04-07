@@ -261,14 +261,15 @@ td.zero{color:#ccc}
       <div class="field"><label>Nome da Mãe</label><input id="mp-mae" placeholder="Nome da mãe"></div>
       <div class="field"><label>Telefone</label><input id="mp-tel" placeholder="(00) 00000-0000"></div>
       <div class="field"><label>Aldeia / Endereço</label><input id="mp-aldeia" placeholder="Aldeia ou endereço"></div>
-<div class="field"><label>Município</label>
-  <select id="mp-municipio">
-    <option value="">Selecione</option>
-    <option value="Guaíra/PR">Guaíra/PR</option>
-    <option value="Terra Roxa/PR">Terra Roxa/PR</option>
-  </select>
-</div>
-<div class="field"><label>Etnia / Povo Indígena</label><input id="mp-etnia" placeholder="Ex: Guarani Nhandewa"></div>
+      <div class="field"><label>Município</label>
+        <select id="mp-municipio">
+          <option value="">Selecione</option>
+          <option value="Guaíra/PR">Guaíra/PR</option>
+          <option value="Terra Roxa/PR">Terra Roxa/PR</option>
+        </select>
+      </div>
+      <div class="field"><label>Etnia / Povo Indígena</label><input id="mp-etnia" placeholder="Ex: Guarani Nhandewa"></div>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-primary" style="flex:1" onclick="salvarPaciente()">💾 Salvar</button>
       <button class="btn" style="background:var(--cinza-claro);flex:1" onclick="fecharModal('modal-pac')">Cancelar</button>
@@ -1761,13 +1762,13 @@ async function salvarPaciente(){
   }
 
   const nomeProf=perfilAtual?.nome||usuarioAtual?.email||'Desconhecido';
-aldeia:gV('mp-aldeia'),municipio:gV('mp-municipio'),etnia:gV('mp-etnia')
+
   // Dados base sem cadastrado_por (usado só no insert)
   const dadosBase={
     nome,cpf:gV('mp-cpf'),cartao_sus:gV('mp-sus'),
     data_nascimento:gV('mp-nasc')||null,sexo:gV('mp-sexo'),
     nome_mae:gV('mp-mae'),telefone:gV('mp-tel'),
-    aldeia:gV('mp-aldeia'),etnia:gV('mp-etnia')
+    aldeia:gV('mp-aldeia'),municipio:gV('mp-municipio'),etnia:gV('mp-etnia')
   };
 
   let error;
