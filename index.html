@@ -2586,35 +2586,48 @@ function pdfGestante(){
   _pdfRodape(doc);doc.save('gestantes-emsi.pdf');
 }
 
+function _pdfPorMunicipio(doc, y, cols, dados, mapFn){
+  const municipios=['Guaíra/PR','Terra Roxa/PR'];
+  municipios.forEach(mun=>{
+    const linhas=dados.filter(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return pac?.municipio===mun;});
+    if(!linhas.length)return;
+    y=_pdfTabela(doc,y,cols,linhas.map(mapFn),`📍 ${mun} — ${linhas.length} atendimento(s)`);
+  });
+  // Sem município definido
+  const outros=dados.filter(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return !pac?.municipio||!municipios.includes(pac.municipio);});
+  if(outros.length) y=_pdfTabela(doc,y,cols,outros.map(mapFn),`📍 Município não informado — ${outros.length} atendimento(s)`);
+  return y;
+}
+
 function pdfMedico(){
   const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
-  let y=_pdfCabecalho(doc,'🩺 Atendimentos Médicos');
-  y=_pdfTabela(doc,y,['Data','Paciente','Queixa','Diagnóstico','CID','Conduta','Encam.','Retorno'],
-    atendMed.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return[fmtData(r.data_atendimento),pac?.nome||'—',r.queixa||'—',r.diagnostico||'—',r.cid10||'—',r.conduta||'—',r.encaminhamento||'—',fmtData(r.data_retorno)];}));
+  let y=_pdfCabecalho(doc,'🩺 Atendimentos Médicos — por Município');
+  _pdfPorMunicipio(doc,y,['Data','Paciente','Município','Queixa','Diagnóstico','CID','Conduta','Encam.','Retorno'],atendMed,
+    r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return[fmtData(r.data_atendimento),pac?.nome||'—',pac?.municipio||'—',r.queixa||'—',r.diagnostico||'—',r.cid10||'—',r.conduta||'—',r.encaminhamento||'—',fmtData(r.data_retorno)];});
   _pdfRodape(doc);doc.save('atendimentos-medico-emsi.pdf');
 }
 
 function pdfOdonto(){
   const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
-  let y=_pdfCabecalho(doc,'🦷 Atendimentos Odontológicos');
-  y=_pdfTabela(doc,y,['Data','Paciente','Tipo','Procedimento','Dente','Observações','Retorno'],
-    atendOdo.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return[fmtData(r.data_atendimento),pac?.nome||'—',r.tipo_atendimento||'—',r.procedimento||'—',r.dente_regiao||'—',r.observacoes||'—',fmtData(r.data_retorno)];}));
+  let y=_pdfCabecalho(doc,'🦷 Atendimentos Odontológicos — por Município');
+  _pdfPorMunicipio(doc,y,['Data','Paciente','Município','Tipo','Procedimento','Dente','Observações','Retorno'],atendOdo,
+    r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return[fmtData(r.data_atendimento),pac?.nome||'—',pac?.municipio||'—',r.tipo_atendimento||'—',r.procedimento||'—',r.dente_regiao||'—',r.observacoes||'—',fmtData(r.data_retorno)];});
   _pdfRodape(doc);doc.save('atendimentos-odonto-emsi.pdf');
 }
 
 function pdfNutricao(){
   const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
-  let y=_pdfCabecalho(doc,'🥦 Atendimentos Nutricionais');
-  y=_pdfTabela(doc,y,['Data','Paciente','Peso','Altura','IMC','Classificação','Diagnóstico','Retorno'],
-    atendNut.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return[fmtData(r.data_atendimento),pac?.nome||'—',r.peso||'—',r.altura||'—',r.imc||'—',r.classificacao_imc||'—',r.diagnostico_nutricional||'—',fmtData(r.data_retorno)];}));
+  let y=_pdfCabecalho(doc,'🥦 Atendimentos Nutricionais — por Município');
+  _pdfPorMunicipio(doc,y,['Data','Paciente','Município','Peso','Altura','IMC','Classificação','Diagnóstico','Retorno'],atendNut,
+    r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return[fmtData(r.data_atendimento),pac?.nome||'—',pac?.municipio||'—',r.peso||'—',r.altura||'—',r.imc||'—',r.classificacao_imc||'—',r.diagnostico_nutricional||'—',fmtData(r.data_retorno)];});
   _pdfRodape(doc);doc.save('atendimentos-nutricao-emsi.pdf');
 }
 
 function pdfSocial(){
   const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
-  let y=_pdfCabecalho(doc,'🤝 Atendimentos Sociais');
-  y=_pdfTabela(doc,y,['Data','Paciente','Demanda','Vulnerabilidades','Encaminhamentos','Benefícios'],
-    atendSoc.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return[fmtData(r.data_atendimento),pac?.nome||'—',r.demanda||'—',r.vulnerabilidades||'—',r.encaminhamentos||'—',r.beneficios||'—'];}));
+  let y=_pdfCabecalho(doc,'🤝 Atendimentos Sociais — por Município');
+  _pdfPorMunicipio(doc,y,['Data','Paciente','Município','Demanda','Vulnerabilidades','Encaminhamentos','Benefícios'],atendSoc,
+    r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return[fmtData(r.data_atendimento),pac?.nome||'—',pac?.municipio||'—',r.demanda||'—',r.vulnerabilidades||'—',r.encaminhamentos||'—',r.beneficios||'—'];});
   _pdfRodape(doc);doc.save('atendimentos-social-emsi.pdf');
 }
 
