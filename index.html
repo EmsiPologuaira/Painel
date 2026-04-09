@@ -223,6 +223,35 @@ td.zero{color:#ccc}
 .notif-realtime{position:fixed;top:70px;right:16px;z-index:8888;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .notif-item{background:var(--azul-escuro);color:white;border-left:4px solid var(--amarelo);border-radius:10px;padding:10px 14px;font-size:.74rem;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.3);animation:slidein .4s ease;min-width:240px;pointer-events:auto}
 @keyframes slidein{from{opacity:0;transform:translateX(50px)}to{opacity:1;transform:translateX(0)}}
+/* ===== SEGURANÇA ===== */
+/* Termo LGPD */
+#tela-lgpd{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;align-items:center;justify-content:center;padding:16px}
+#tela-lgpd.show{display:flex}
+.lgpd-card{background:white;border-radius:18px;max-width:560px;width:100%;max-height:92vh;overflow-y:auto;box-shadow:0 20px 80px rgba(0,0,0,.5)}
+.lgpd-header{background:linear-gradient(135deg,#0d2040,#1a3a6b);color:white;padding:20px 24px;border-radius:18px 18px 0 0}
+.lgpd-header h2{font-size:1rem;font-weight:800}
+.lgpd-header p{font-size:.72rem;opacity:.75;margin-top:4px}
+.lgpd-body{padding:20px 24px}
+.lgpd-body h3{font-size:.82rem;font-weight:700;color:#1a3a6b;margin:14px 0 6px}
+.lgpd-body p,.lgpd-body li{font-size:.76rem;color:#374151;line-height:1.7}
+.lgpd-body ul{padding-left:18px;margin-bottom:8px}
+.lgpd-check{display:flex;align-items:flex-start;gap:10px;background:#f0fdf4;border:1.5px solid #6ee7b7;border-radius:10px;padding:12px;margin:16px 0 14px;cursor:pointer}
+.lgpd-check input{width:18px;height:18px;flex-shrink:0;margin-top:1px;accent-color:#1a6b3a;cursor:pointer}
+.lgpd-check label{font-size:.78rem;font-weight:600;color:#065f46;cursor:pointer;line-height:1.5}
+.btn-lgpd{width:100%;background:linear-gradient(135deg,#065f46,#059669);color:white;border:none;border-radius:10px;padding:13px;font-family:'Sora',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;opacity:.4;pointer-events:none;transition:.2s}
+.btn-lgpd.ativo{opacity:1;pointer-events:auto}
+/* Tela bloqueio */
+#tela-bloqueio{display:none;position:fixed;inset:0;background:rgba(13,32,64,.97);z-index:99998;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+#tela-bloqueio.show{display:flex}
+.bloqueio-ico{font-size:3rem}
+.bloqueio-txt{font-family:'Sora',sans-serif;font-weight:800;font-size:1.1rem;color:white;text-align:center}
+.bloqueio-sub{font-size:.78rem;color:rgba(255,255,255,.6);text-align:center}
+.bloqueio-timer{font-family:'IBM Plex Mono',monospace;font-size:1.4rem;color:#f5c842;font-weight:700}
+/* Timeout aviso */
+#aviso-timeout{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0d2040;border:2px solid #f5c842;border-radius:12px;padding:14px 20px;z-index:9997;font-size:.8rem;color:white;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.4);min-width:280px}
+/* Badge auditoria */
+.badge-auditoria{background:rgba(39,163,84,.15);border:1px solid rgba(39,163,84,.3);border-radius:10px;padding:3px 9px;font-size:.6rem;font-weight:700;color:#6ee7b7;font-family:'IBM Plex Mono',monospace}
+/* Headers */
 /* HEADERS */
 .hdr-pac{background:linear-gradient(135deg,#0d2040,#1a5ba0)}
 .hdr-vac{background:linear-gradient(135deg,#065f46,#16a34a)}
@@ -395,6 +424,60 @@ td.zero{color:#ccc}
   </div>
 </div>
 
+<!-- TELA LGPD -->
+<div id="tela-lgpd">
+  <div class="lgpd-card">
+    <div class="lgpd-header">
+      <h2>🔐 Termo de Responsabilidade — LGPD</h2>
+      <p>Lei Geral de Proteção de Dados · Lei 13.709/2018 · SESAI/MS</p>
+    </div>
+    <div class="lgpd-body">
+      <h3>📋 Sobre este Sistema</h3>
+      <p>O <strong>Painel EMSI — Polo Base Guaíra</strong> é um sistema de informação em saúde indígena que trata dados pessoais sensíveis de indígenas atendidos pelo DSEI Litoral Sul / SESAI / Ministério da Saúde.</p>
+      <h3>⚖️ Base Legal</h3>
+      <p>O tratamento dos dados é fundamentado no Art. 7º, III e Art. 11º, II, "f" da LGPD (Lei 13.709/2018), que autoriza o tratamento de dados sensíveis para a tutela da saúde, exclusivamente por profissionais da saúde, serviços de saúde ou autoridade sanitária.</p>
+      <h3>🛡️ Dados Tratados</h3>
+      <ul>
+        <li>Dados de identificação (nome, CPF, Cartão SUS, data de nascimento)</li>
+        <li>Dados de saúde (diagnósticos, atendimentos, vacinas, prontuários)</li>
+        <li>Dados socioeconômicos (situação familiar, benefícios sociais)</li>
+        <li>Dados de localização (aldeia, município)</li>
+      </ul>
+      <h3>📌 Suas Obrigações</h3>
+      <ul>
+        <li>Utilizar os dados <strong>exclusivamente</strong> para finalidades de saúde e assistência social indígena</li>
+        <li>Não compartilhar credenciais de acesso com terceiros</li>
+        <li>Não exportar ou copiar dados para fins pessoais</li>
+        <li>Comunicar imediatamente qualquer incidente de segurança ao Coordenador</li>
+        <li>Respeitar o sigilo profissional e o sigilo dos dados de saúde</li>
+      </ul>
+      <h3>⚠️ Penalidades</h3>
+      <p>O uso indevido dos dados pode configurar infração à LGPD (multa de até R$ 50 milhões), além de responsabilização civil e criminal nos termos da legislação brasileira.</p>
+      <div class="lgpd-check" onclick="toggleLgpd()">
+        <input type="checkbox" id="chk-lgpd">
+        <label for="chk-lgpd">Li, compreendi e concordo com os termos acima. Comprometo-me a utilizar este sistema de forma ética, responsável e em conformidade com a LGPD e com as normas do SESAI/MS.</label>
+      </div>
+      <button class="btn-lgpd" id="btn-lgpd-aceitar" onclick="aceitarLgpd()">✅ Aceitar e Continuar</button>
+      <p style="font-size:.65rem;color:#9ca3af;text-align:center;margin-top:12px">Polo Base Guaíra · DSEI Litoral Sul · SESAI/MS</p>
+    </div>
+  </div>
+</div>
+
+<!-- TELA BLOQUEIO -->
+<div id="tela-bloqueio">
+  <div class="bloqueio-ico">🔒</div>
+  <div class="bloqueio-txt">Acesso Temporariamente Bloqueado</div>
+  <div class="bloqueio-sub">Muitas tentativas de login incorretas.<br>Aguarde para tentar novamente.</div>
+  <div class="bloqueio-timer" id="bloqueio-timer">05:00</div>
+  <div class="bloqueio-sub" style="font-size:.7rem">Sistema de segurança EMSI — SESAI/MS</div>
+</div>
+
+<!-- AVISO TIMEOUT -->
+<div id="aviso-timeout">
+  ⏱️ Sua sessão expira em <strong id="timeout-contador">05:00</strong> por inatividade.<br>
+  <button onclick="resetarTimeout()" style="background:#f5c842;color:#0d2040;border:none;border-radius:6px;padding:4px 14px;font-weight:700;font-size:.75rem;cursor:pointer;margin-top:8px">Continuar Sessão</button>
+</div>
+
 <!-- LOGIN -->
 <div id="login-screen">
   <div class="login-card">
@@ -433,6 +516,7 @@ td.zero{color:#ccc}
     </div>
     <div class="header-right">
       <div id="status-online" class="realtime-badge"><span class="realtime-dot"></span><span id="status-txt">Online</span></div>
+      <div class="badge-auditoria">🔐 LGPD</div>
       <div id="status-offline" style="display:none;align-items:center;gap:5px;background:rgba(192,57,43,.2);border:1px solid rgba(192,57,43,.4);border-radius:12px;padding:3px 10px;font-size:.6rem;font-weight:700;color:#fca5a5">📡 Offline</div>
       <div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:3px 10px;font-size:.6rem;font-weight:700;color:rgba(255,255,255,.7)" id="badge-conectados">👥 <span id="num-conectados">1</span></div>
       <div style="font-size:.58rem;font-family:'IBM Plex Mono',monospace;color:rgba(255,255,255,.4)" id="badge-speed">0 KB/s</div>
@@ -468,6 +552,7 @@ td.zero{color:#ccc}
     <button class="tab-btn" onclick="st('relatorio',this)">📄 Relatório</button>
     <button class="tab-btn" onclick="st('usuarios',this)">⚙️ Usuários</button>
     <button class="tab-btn" onclick="st('perfil',this)">👤 Perfil</button>
+    <button class="tab-btn" onclick="st('auditoria',this)">🔐 Auditoria</button>
   </div>
 
   <!-- TABS PROFISSIONAL -->
@@ -490,6 +575,7 @@ td.zero{color:#ccc}
     <button class="tab-btn" onclick="st('educacao',this)">📢 Educação em Saúde</button>
     <button class="tab-btn" onclick="st('chat',this)">💬 Chat Equipe</button>
     <button class="tab-btn" onclick="st('perfil',this)">👤 Perfil</button>
+    <button class="tab-btn" onclick="st('auditoria',this)">🔐 Auditoria</button>
   </div>
 
   <!-- PERÍODO BAR -->
@@ -1362,8 +1448,13 @@ td.zero{color:#ccc}
 <script>
 
 // ===================== CONFIGURAÇÃO SUPABASE =====================
-const SB_URL='https://ljievfynpgahvmxvnkqa.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqaWV2ZnlucGdhaHZteHZua3FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MTczNzAsImV4cCI6MjA5MDI5MzM3MH0.4Jy5DUozw8FNBsw5tAHLKfPn0WtfqgNWN8F8SSnMbmg';
+// Credenciais ofuscadas em partes para dificultar extração direta
+const _a='https://ljievfynpg';
+const _b='ahvmxvnkqa.supabase.co';
+const SB_URL=_a+_b;
+const _k1='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im';
+const _k2='xqaWV2ZnlucGdhaHZteHZua3FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MTczNzAsImV4cCI6MjA5MDI5MzM3MH0.4Jy5DUozw8FNBsw5tAHLKfPn0WtfqgNWN8F8SSnMbmg';
+const SB_KEY=_k1+_k2;
 const {createClient}=window.supabase||supabase;
 if(!createClient){document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:red;font-size:1.1rem">Erro: SDK Supabase não carregou. Verifique sua conexão e recarregue.</div>';throw new Error('SDK não carregou');}
 const sb=createClient(SB_URL,SB_KEY,{
@@ -1378,6 +1469,131 @@ const sb=createClient(SB_URL,SB_KEY,{
   }
 });
 const ADMIN='clsipolobaseguaira@hotmail.com';
+/* SQL para criar tabela de auditoria no Supabase:
+   create table if not exists auditoria_emsi (
+     id uuid primary key default gen_random_uuid(),
+     user_id uuid, email text, nome text,
+     acao text, detalhe text, ip_hash text,
+     criado_em timestamptz default now()
+   );
+   alter table auditoria_emsi enable row level security;
+   create policy "insert_own" on auditoria_emsi for insert with check (auth.uid()=user_id);
+   create policy "admin_read" on auditoria_emsi for select using (auth.email()='clsipolobaseguaira@hotmail.com');
+*/
+
+// ===================== SEGURANÇA — CONSTANTES =====================
+const MAX_TENTATIVAS = 5;           // Tentativas antes do bloqueio
+const BLOQUEIO_MS = 5 * 60 * 1000; // 5 minutos de bloqueio
+const TIMEOUT_MS = 30 * 60 * 1000; // 30 min inatividade → logout
+const AVISO_MS = 5 * 60 * 1000;    // Aviso 5 min antes do timeout
+const LGPD_KEY = 'emsi_lgpd_aceito';
+const BLOQUEIO_KEY = 'emsi_bloqueio';
+const AUDIT_TABELA = 'auditoria_emsi';
+
+// ===================== CONTROLE DE TENTATIVAS =====================
+function getTentativas(){
+  try{const d=JSON.parse(sessionStorage.getItem('emsi_tentativas')||'{"n":0,"t":0}');return d;}
+  catch(e){return{n:0,t:0};}
+}
+function addTentativa(){
+  const d=getTentativas();d.n++;d.t=Date.now();
+  sessionStorage.setItem('emsi_tentativas',JSON.stringify(d));
+  return d.n;
+}
+function resetarTentativas(){sessionStorage.removeItem('emsi_tentativas');}
+function estaBloqueado(){
+  const d=getTentativas();
+  if(d.n>=MAX_TENTATIVAS){
+    const restante=BLOQUEIO_MS-(Date.now()-d.t);
+    if(restante>0)return restante;
+    resetarTentativas();
+  }
+  return 0;
+}
+
+// ===================== BLOQUEIO UI =====================
+let _bloqInterval=null;
+function mostrarBloqueio(ms){
+  document.getElementById('tela-bloqueio').classList.add('show');
+  let restante=Math.ceil(ms/1000);
+  const el=document.getElementById('bloqueio-timer');
+  function tick(){
+    const m=Math.floor(restante/60),s=restante%60;
+    if(el)el.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if(restante<=0){
+      clearInterval(_bloqInterval);
+      document.getElementById('tela-bloqueio').classList.remove('show');
+      resetarTentativas();
+    }
+    restante--;
+  }
+  tick();
+  _bloqInterval=setInterval(tick,1000);
+}
+
+// ===================== TIMEOUT DE SESSÃO =====================
+let _timeoutTimer=null, _avisoTimer=null, _timeoutContador=null;
+function resetarTimeout(){
+  document.getElementById('aviso-timeout').style.display='none';
+  clearTimeout(_timeoutTimer);clearTimeout(_avisoTimer);clearInterval(_timeoutContador);
+  _timeoutTimer=setTimeout(()=>{
+    registrarAuditoria('TIMEOUT','Sessão encerrada por inatividade');
+    fazerLogout();
+  },TIMEOUT_MS);
+  _avisoTimer=setTimeout(()=>{
+    document.getElementById('aviso-timeout').style.display='block';
+    let seg=Math.ceil(AVISO_MS/1000);
+    const el=document.getElementById('timeout-contador');
+    _timeoutContador=setInterval(()=>{
+      seg--;const m=Math.floor(seg/60),s=seg%60;
+      if(el)el.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      if(seg<=0)clearInterval(_timeoutContador);
+    },1000);
+  },TIMEOUT_MS-AVISO_MS);
+}
+['click','keydown','mousemove','touchstart','scroll'].forEach(ev=>
+  document.addEventListener(ev,()=>{if(usuarioAtual)resetarTimeout();},{passive:true})
+);
+
+// ===================== LGPD =====================
+function toggleLgpd(){
+  const chk=document.getElementById('chk-lgpd');
+  chk.checked=!chk.checked;
+  const btn=document.getElementById('btn-lgpd-aceitar');
+  btn.classList.toggle('ativo',chk.checked);
+}
+function aceitarLgpd(){
+  if(!document.getElementById('chk-lgpd').checked)return;
+  localStorage.setItem(LGPD_KEY,JSON.stringify({aceito:true,data:new Date().toISOString(),usuario:document.getElementById('inp-email').value}));
+  document.getElementById('tela-lgpd').classList.remove('show');
+  _executarLogin();
+}
+function verificarLgpd(){
+  try{const d=JSON.parse(localStorage.getItem(LGPD_KEY)||'{}');return !!d.aceito;}
+  catch(e){return false;}
+}
+
+// ===================== AUDITORIA =====================
+async function registrarAuditoria(acao, detalhe=''){
+  try{
+    if(!usuarioAtual)return;
+    await sb.from(AUDIT_TABELA).insert({
+      user_id:usuarioAtual.id,
+      email:usuarioAtual.email,
+      nome:perfilAtual?.nome||usuarioAtual.email,
+      acao,
+      detalhe,
+      ip_hash: await hashSimples(navigator.userAgent+Date.now()),
+      criado_em:new Date().toISOString()
+    });
+  }catch(e){console.warn('Auditoria falhou:',e);}
+}
+async function hashSimples(str){
+  try{
+    const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).slice(0,8).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }catch(e){return 'nohash';}
+}
 const MN=['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
 const CAUSAS_OBITO={
@@ -1463,32 +1679,49 @@ async function recuperarSenha(){
 
 // ===================== AUTH =====================
 async function fazerLogin(){
-  const email=document.getElementById('inp-email').value.trim();
+  const email=document.getElementById('inp-email').value.trim().toLowerCase();
   const senha=document.getElementById('inp-senha').value;
   const btn=document.getElementById('btn-entrar');
   const erro=document.getElementById('login-erro');
+
+  // Verificar bloqueio
+  const bloqRestante=estaBloqueado();
+  if(bloqRestante>0){mostrarBloqueio(bloqRestante);return;}
+
   if(!email||!senha){
     erro.textContent='Preencha e-mail e senha.';
     erro.style.cssText='display:block;color:var(--vermelho);background:#fff5f5;border-color:var(--vermelho)';
     return;
   }
   erro.style.display='none';
-  btn.textContent='Entrando...';
-  btn.disabled=true;
+  btn.textContent='Verificando...';btn.disabled=true;
+
   try{
     const {data,error}=await sb.auth.signInWithPassword({email,password:senha});
     if(error){
+      const tentativas=addTentativa();
+      const restantes=MAX_TENTATIVAS-tentativas;
       let msg='E-mail ou senha incorretos.';
-      if(error.message&&error.message.includes('Email not confirmed'))msg='E-mail não confirmado. Verifique sua caixa de entrada.';
-      else if(error.message&&(error.message.includes('network')||error.message.includes('fetch')))msg='Erro de conexão. Verifique sua internet.';
+      if(restantes>0&&restantes<=3)msg+=` ${restantes} tentativa(s) restante(s).`;
+      if(error.message?.includes('Email not confirmed'))msg='E-mail não confirmado. Verifique sua caixa de entrada.';
+      else if(error.message?.includes('network')||error.message?.includes('fetch'))msg='Erro de conexão. Verifique sua internet.';
+      if(tentativas>=MAX_TENTATIVAS){mostrarBloqueio(BLOQUEIO_MS);btn.textContent='Entrar';btn.disabled=false;return;}
       erro.textContent=msg;
       erro.style.cssText='display:block;color:var(--vermelho);background:#fff5f5;border-color:var(--vermelho)';
       btn.textContent='Entrar';btn.disabled=false;
       return;
     }
-    if(!data||!data.user){
+    if(!data?.user){
       erro.textContent='Não foi possível autenticar. Tente novamente.';
       erro.style.cssText='display:block;color:var(--vermelho);background:#fff5f5;border-color:var(--vermelho)';
+      btn.textContent='Entrar';btn.disabled=false;
+      return;
+    }
+    resetarTentativas();
+    // Verificar LGPD
+    if(!verificarLgpd()){
+      document.getElementById('tela-lgpd').classList.add('show');
+      _loginData=data.user;
       btn.textContent='Entrar';btn.disabled=false;
       return;
     }
@@ -1498,6 +1731,11 @@ async function fazerLogin(){
     erro.style.cssText='display:block;color:var(--vermelho);background:#fff5f5;border-color:var(--vermelho)';
     btn.textContent='Entrar';btn.disabled=false;
   }
+}
+let _loginData=null;
+async function _executarLogin(){
+  if(_loginData)await iniciarApp(_loginData);
+  _loginData=null;
 }
 
 async function iniciarApp(user){
@@ -1543,13 +1781,22 @@ async function iniciarApp(user){
     try{monitorarVelocidade();}catch(e){}
     try{iniciarAutoAtualizar();}catch(e){}
     try{iniciarLembreteOlhos();}catch(e){}
+    // SEGURANÇA: iniciar timeout e registrar acesso
+    try{resetarTimeout();}catch(e){}
+    try{registrarAuditoria('LOGIN',`Acesso realizado — ${perfilAtual?.tipo||'coordenador'}`);}catch(e){}
   }catch(e){
     console.error('Erro iniciarApp:',e);
     alert('Erro ao carregar o sistema. Tente recarregar a página.');
   }
 }
 
-async function fazerLogout(){_rtAtivo=false;_rtLimparCanais();await sb.auth.signOut();location.reload();}
+async function fazerLogout(){
+  try{await registrarAuditoria('LOGOUT','Sessão encerrada pelo usuário');}catch(e){}
+  _rtAtivo=false;_rtLimparCanais();
+  clearTimeout(_timeoutTimer);clearTimeout(_avisoTimer);clearInterval(_timeoutContador);
+  await sb.auth.signOut();
+  location.reload();
+}
 sb.auth.getSession().then(({data})=>{
   if(data?.session?.user)iniciarApp(data.session.user);
 }).catch(e=>{console.warn('Erro getSession:',e);});
@@ -1672,6 +1919,7 @@ function st(id,btn){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   const t=document.getElementById('tab-'+id);if(t)t.classList.add('active');
   if(btn)btn.classList.add('active');
+  if(id==='auditoria')try{carregarAuditoria();}catch(e){}
 }
 
 // ===================== FOTO PERFIL =====================
@@ -3093,6 +3341,31 @@ function iniciarLembreteOlhos(){
 }
 </script>
 
+  <!-- ===== AUDITORIA ===== -->
+  <div id="tab-auditoria" class="tab-content"><div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div>
+        <h3 style="font-size:.96rem;font-weight:800;color:#1a3a6b">🔐 Registro de Auditoria</h3>
+        <p style="font-size:.72rem;color:#6b7280;margin-top:2px">Todos os acessos e acoes registrados — LGPD Art. 37</p>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-primary btn-sm" onclick="carregarAuditoria()">Atualizar</button>
+        <button class="btn-pdf btn-sm" onclick="pdfAuditoria()">PDF</button>
+      </div>
+    </div>
+    <div class="tw">
+      <div class="tw-head" style="background:linear-gradient(135deg,#1c1917,#292524)">
+        <span>Log de Acessos e Acoes</span>
+        <span id="audit-total" style="font-size:.7rem;opacity:.7"></span>
+      </div>
+      <div style="overflow-x:auto">
+        <table><thead><tr>
+          <th>Data/Hora</th><th>Usuario</th><th>E-mail</th><th>Acao</th><th>Detalhe</th>
+        </tr></thead><tbody id="tbody-auditoria"></tbody></table>
+      </div>
+    </div>
+  </div></div>
+
 <script>
 // ===================== PWA — INSTALAÇÃO COMO APP =====================
 
@@ -3211,6 +3484,65 @@ if(isIOS && !isStandalone){
       mostrarNotif('📲 Para instalar: toque em <strong>Compartilhar → Adicionar à Tela de Início</strong>');
     }
   }, 4000);
+}
+</script>
+
+<script>
+// ===================== AUDITORIA — RENDER + PDF =====================
+let dadosAuditoria=[];
+
+async function carregarAuditoria(){
+  if(!isAdmin)return;
+  try{
+    const {data}=await sb.from('auditoria_emsi').select('*').order('criado_em',{ascending:false}).limit(200);
+    dadosAuditoria=data||[];
+    const tbody=document.getElementById('tbody-auditoria');
+    const total=document.getElementById('audit-total');
+    if(total)total.textContent=`${dadosAuditoria.length} registro(s)`;
+    if(!tbody)return;
+    tbody.innerHTML=dadosAuditoria.map(r=>{
+      const acaoCor=r.acao==='LOGIN'?'ok':r.acao==='LOGOUT'?'':r.acao==='TIMEOUT'?'alerta':'';
+      return `<tr>
+        <td style="white-space:nowrap">${r.criado_em?new Date(r.criado_em).toLocaleString('pt-BR'):'—'}</td>
+        <td style="font-weight:700">${r.nome||'—'}</td>
+        <td style="font-size:.65rem">${r.email||'—'}</td>
+        <td><span class="badge ${r.acao==='LOGIN'?'badge-verde':r.acao==='LOGOUT'?'badge-azul':r.acao==='TIMEOUT'?'badge-amarelo':'badge-cinza'}">${r.acao||'—'}</span></td>
+        <td>${r.detalhe||'—'}</td>
+      </tr>`;
+    }).join('');
+    if(!dadosAuditoria.length)tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:#6b7280;padding:14px">Nenhum registro de auditoria.</td></tr>';
+  }catch(e){console.warn('Erro auditoria:',e);}
+}
+
+function pdfAuditoria(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF('l');
+  doc.setFillColor(13,32,64);doc.rect(0,0,297,22,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(11);doc.setFont('helvetica','bold');
+  doc.text('PAINEL EMSI — POLO BASE GUAIRA',14,9);
+  doc.setFontSize(7);doc.setFont('helvetica','normal');
+  doc.text('Registro de Auditoria — LGPD Art. 37 · Equipe Multidisciplinar de Saude Indigena',14,15);
+  doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(13,32,64);
+  doc.text('REGISTRO DE AUDITORIA E ACESSOS',14,30);
+  doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(100,100,100);
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} — ${dadosAuditoria.length} registro(s)`,14,36);
+  doc.autoTable({
+    startY:42,
+    head:[['Data/Hora','Usuario','E-mail','Acao','Detalhe']],
+    body:dadosAuditoria.map(r=>[
+      r.criado_em?new Date(r.criado_em).toLocaleString('pt-BR'):'—',
+      r.nome||'—',r.email||'—',r.acao||'—',r.detalhe||'—'
+    ]),
+    styles:{fontSize:7,cellPadding:2,font:'helvetica'},
+    headStyles:{fillColor:[13,32,64],textColor:255,fontStyle:'bold'},
+    alternateRowStyles:{fillColor:[240,244,248]},
+    margin:{left:14,right:14}
+  });
+  const pg=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pg;i++){
+    doc.setPage(i);doc.setFontSize(6);doc.setTextColor(150,150,150);
+    doc.text(`Pagina ${i} de ${pg} — AUDITORIA EMSI · POLO BASE GUAIRA · CONFIDENCIAL`,14,200);
+  }
+  doc.save('auditoria-emsi-guaira.pdf');
 }
 </script>
 </body>
