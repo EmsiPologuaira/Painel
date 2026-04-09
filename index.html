@@ -712,7 +712,7 @@ td.zero{color:#ccc}
     </div>
     <div class="tw">
       <div class="tw-head">📋 Histórico de Atendimentos Médicos</div>
-      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Queixa</th><th>Diagnóstico</th><th>CID</th><th>Conduta</th><th>Encam.</th><th>Retorno</th></tr></thead><tbody id="tbody-med"></tbody></table></div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Queixa</th><th>Diagnóstico</th><th>CID</th><th>Conduta</th><th>Encam.</th><th>Retorno</th><th id="th-del-med"></th></tr></thead><tbody id="tbody-med"></tbody></table></div>
     </div>
   </div></div>
 
@@ -758,7 +758,7 @@ td.zero{color:#ccc}
     </div>
     <div class="tw">
       <div class="tw-head">📋 Histórico Odontológico</div>
-      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Tipo</th><th>Procedimento/Tema</th><th>Dente/Local</th><th>Participantes</th><th>Observações</th><th>Próx. Visita/Retorno</th></tr></thead><tbody id="tbody-odo"></tbody></table></div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Tipo</th><th>Procedimento/Tema</th><th>Dente/Local</th><th>Participantes</th><th>Observações</th><th>Próx. Visita/Retorno</th><th id="th-del-odo"></th></tr></thead><tbody id="tbody-odo"></tbody></table></div>
     </div>
   </div></div>
 
@@ -1756,6 +1756,8 @@ async function iniciarApp(user){
     if(isAdmin){
       const huEl=document.getElementById('huser');if(huEl)huEl.textContent='👑 Coordenador';
       document.getElementById('tabs-admin').style.display='flex';
+      // Mostrar coluna de exclusão para admin
+      ['th-del-med','th-del-odo'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='Ação';});
       const firstTab=document.querySelector('#tabs-admin .tab-btn');if(firstTab)firstTab.classList.add('active');
       document.getElementById('tab-dash').classList.add('active');
       try{carregarUsuarios();}catch(e){}
@@ -2036,11 +2038,13 @@ async function salvarPaciente(){
 }
 
 async function excluirPaciente(id){
+  if(!isAdmin){alert('Apenas o coordenador pode excluir pacientes.');return;}
   const pac=pacientes.find(p=>p.id===id);
   if(!pac)return;
   if(!confirm(`⚠️ Tem certeza que deseja EXCLUIR o paciente "${pac.nome}"?\n\nEsta ação não pode ser desfeita.`))return;
   const {error}=await sb.from('pacientes').delete().eq('id',id);
   if(!error){
+    registrarAuditoria('EXCLUSAO_PACIENTE',`Paciente: ${pac.nome} | CPF: ${pac.cpf||'—'} | ID: ${id}`);
     pacientes=pacientes.filter(p=>p.id!==id);
     renderPacientes();popularSelects();renderDashboard();
     mostrarNotif(`🗑️ Paciente <strong>${pac.nome}</strong> excluído.`);
@@ -2328,9 +2332,30 @@ function renderAtendimentos(mod){
   tbody.innerHTML=arr.map(r=>{
     const pac=pacientes.find(p=>p.id===r.paciente_id);
     const vals=c.campos.map(f=>r[f]||'—');
-    return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td>${vals.map(v=>`<td>${v}</td>`).join('')}</tr>`;
+    const btnExcluir=isAdmin?`<td><button class="btn btn-danger btn-sm" style="font-size:.6rem;padding:3px 8px" onclick="excluirAtendimento('${mod}','${r.id}','${(pac?.nome||'').replace(/'/g,'\\\'')}')" title="Excluir registro">🗑️</button></td>`:'<td></td>';
+    return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td>${vals.map(v=>`<td>${v}</td>`).join('')}${btnExcluir}</tr>`;
   }).join('');
-  if(!arr.length)tbody.innerHTML=`<tr><td colspan="${c.cols.length}" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>`;
+  if(!arr.length)tbody.innerHTML=`<tr><td colspan="${c.cols.length+(isAdmin?1:0)}" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>`;
+}
+
+// ===================== EXCLUIR ATENDIMENTO (somente ADM) =====================
+async function excluirAtendimento(mod, id, nomePac){
+  if(!isAdmin){alert('Apenas o coordenador pode excluir registros.');return;}
+  const c=CFG_ATEND[mod];
+  const nomesMod={medico:'Médico',odonto:'Odontológico',nutricao:'Nutricional',social:'Social'};
+  if(!confirm(`⚠️ Excluir atendimento ${nomesMod[mod]||mod} de "${nomePac}"?
+
+Esta ação não pode ser desfeita e será registrada na auditoria.`))return;
+  const {error}=await sb.from(c.tbl).delete().eq('id',id);
+  if(!error){
+    mostrarNotif(`🗑️ Atendimento excluído — ${nomePac}`);
+    registrarAuditoria('EXCLUSAO_ATENDIMENTO',`Módulo: ${nomesMod[mod]||mod} | Paciente: ${nomePac} | ID: ${id}`);
+    await carregarAtend(mod);
+    renderAtendimentos(mod);
+    renderDashboard();
+  } else {
+    alert('Erro ao excluir: '+error.message);
+  }
 }
 
 // ===================== SAÚDE MENTAL =====================
