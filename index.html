@@ -1469,6 +1469,224 @@ const sb=createClient(SB_URL,SB_KEY,{
   }
 });
 const ADMIN='clsipolobaseguaira@hotmail.com';
+
+// ===================== MÓDULO OFFLINE — FILA IndexedDB =====================
+// Guarda todos os INSERT/UPDATE quando offline e sincroniza ao reconectar.
+
+const OFFLINE_DB_NAME = 'emsi_offline_v1';
+const OFFLINE_STORE   = 'fila_sync';
+let _offlineDB = null;
+
+// Abre (ou cria) o banco IndexedDB
+function _abrirOfflineDB(){
+  return new Promise((resolve, reject) => {
+    if(_offlineDB){ resolve(_offlineDB); return; }
+    const req = indexedDB.open(OFFLINE_DB_NAME, 1);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if(!db.objectStoreNames.contains(OFFLINE_STORE)){
+        const store = db.createObjectStore(OFFLINE_STORE, {keyPath:'id', autoIncrement:true});
+        store.createIndex('tabela', 'tabela', {unique:false});
+      }
+    };
+    req.onsuccess = e => { _offlineDB = e.target.result; resolve(_offlineDB); };
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+// Adiciona um item à fila
+async function _enfileirarOffline(operacao, tabela, dados, matchCol, matchVal){
+  const db = await _abrirOfflineDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_STORE, 'readwrite');
+    tx.objectStore(OFFLINE_STORE).add({
+      operacao,       // 'insert' | 'update'
+      tabela,
+      dados,
+      matchCol: matchCol || null,
+      matchVal: matchVal || null,
+      criado_em: new Date().toISOString()
+    });
+    tx.oncomplete = resolve;
+    tx.onerror    = e => reject(e.target.error);
+  });
+}
+
+// Lê todos os itens da fila
+async function _lerFilaOffline(){
+  const db = await _abrirOfflineDB();
+  return new Promise((resolve, reject) => {
+    const tx    = db.transaction(OFFLINE_STORE, 'readonly');
+    const req   = tx.objectStore(OFFLINE_STORE).getAll();
+    req.onsuccess = e => resolve(e.target.result || []);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+// Remove um item da fila pelo id
+async function _removerFilaOffline(id){
+  const db = await _abrirOfflineDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_STORE, 'readwrite');
+    tx.objectStore(OFFLINE_STORE).delete(id);
+    tx.oncomplete = resolve;
+    tx.onerror    = e => reject(e.target.error);
+  });
+}
+
+// Conta quantos itens estão na fila
+async function _contarFilaOffline(){
+  const db = await _abrirOfflineDB();
+  return new Promise((resolve) => {
+    const tx  = db.transaction(OFFLINE_STORE, 'readonly');
+    const req = tx.objectStore(OFFLINE_STORE).count();
+    req.onsuccess = e => resolve(e.target.result || 0);
+    req.onerror   = () => resolve(0);
+  });
+}
+
+// Atualiza badge de pendentes no header
+async function _atualizarBadgeOffline(){
+  const n = await _contarFilaOffline();
+  let badge = document.getElementById('badge-offline-fila');
+  if(n > 0){
+    if(!badge){
+      badge = document.createElement('div');
+      badge.id = 'badge-offline-fila';
+      badge.style.cssText = 'display:flex;align-items:center;gap:5px;background:rgba(245,200,66,.2);border:1px solid rgba(245,200,66,.5);border-radius:12px;padding:3px 10px;font-size:.6rem;font-weight:700;color:#f5c842;cursor:pointer';
+      badge.title = 'Dados pendentes para sincronizar';
+      badge.onclick = sincronizarFilaOffline;
+      const headerRight = document.querySelector('.header-right');
+      if(headerRight) headerRight.insertBefore(badge, headerRight.firstChild);
+    }
+    badge.innerHTML = `⏳ <span>${n} pendente${n>1?'s':''}</span>`;
+  } else {
+    if(badge) badge.remove();
+  }
+}
+
+// Sincroniza a fila com o Supabase (chama quando online)
+let _sincronizando = false;
+async function sincronizarFilaOffline(){
+  if(_sincronizando || !navigator.onLine) return;
+  _sincronizando = true;
+  const fila = await _lerFilaOffline();
+  if(fila.length === 0){ _sincronizando = false; return; }
+
+  mostrarNotif(`🔄 Sincronizando ${fila.length} registro(s) offline...`);
+  let ok = 0, erros = 0;
+
+  for(const item of fila){
+    try{
+      let error;
+      if(item.operacao === 'insert'){
+        const r = await sb.from(item.tabela).insert(item.dados);
+        error = r.error;
+      } else if(item.operacao === 'update' && item.matchCol){
+        const r = await sb.from(item.tabela).update(item.dados).eq(item.matchCol, item.matchVal);
+        error = r.error;
+      } else if(item.operacao === 'upsert'){
+        const r = await sb.from(item.tabela).upsert(item.dados, {onConflict: item.matchCol || 'id'});
+        error = r.error;
+      }
+      if(!error){
+        await _removerFilaOffline(item.id);
+        ok++;
+      } else {
+        erros++;
+        console.warn('Sync error:', item.tabela, error.message);
+      }
+    }catch(e){ erros++; console.warn('Sync exception:', e); }
+  }
+
+  _sincronizando = false;
+  await _atualizarBadgeOffline();
+
+  if(ok > 0){
+    mostrarNotif(`✅ ${ok} registro(s) sincronizado(s) com sucesso!`);
+    try{ await carregarTudo(); }catch(e){}
+  }
+  if(erros > 0){
+    mostrarNotif(`⚠️ ${erros} registro(s) com erro — serão tentados novamente.`);
+  }
+}
+
+// Wrapper: tenta inserir online; se offline, enfileira
+async function sbInsert(tabela, dados){
+  if(navigator.onLine){
+    const r = await sb.from(tabela).insert(dados);
+    if(r.error && (r.error.message?.includes('fetch')||r.error.message?.includes('network'))){
+      // Falha de rede mesmo estando "online"
+      await _enfileirarOffline('insert', tabela, dados);
+      await _atualizarBadgeOffline();
+      mostrarNotif(`💾 Salvo offline — será enviado ao reconectar`);
+      return {data:null, error:null, _offline:true};
+    }
+    return r;
+  } else {
+    await _enfileirarOffline('insert', tabela, dados);
+    await _atualizarBadgeOffline();
+    mostrarNotif(`💾 Sem internet — dado salvo localmente`);
+    return {data:null, error:null, _offline:true};
+  }
+}
+
+// Wrapper: tenta update online; se offline, enfileira
+async function sbUpdate(tabela, dados, matchCol, matchVal){
+  if(navigator.onLine){
+    const r = await sb.from(tabela).update(dados).eq(matchCol, matchVal);
+    if(r.error && (r.error.message?.includes('fetch')||r.error.message?.includes('network'))){
+      await _enfileirarOffline('update', tabela, dados, matchCol, matchVal);
+      await _atualizarBadgeOffline();
+      mostrarNotif(`💾 Atualização salva offline`);
+      return {data:null, error:null, _offline:true};
+    }
+    return r;
+  } else {
+    await _enfileirarOffline('update', tabela, dados, matchCol, matchVal);
+    await _atualizarBadgeOffline();
+    mostrarNotif(`💾 Sem internet — atualização salva localmente`);
+    return {data:null, error:null, _offline:true};
+  }
+}
+
+// Wrapper: upsert com fallback offline
+async function sbUpsert(tabela, dados, conflictCol){
+  if(navigator.onLine){
+    const r = await sb.from(tabela).upsert(dados, {onConflict: conflictCol});
+    if(r.error && (r.error.message?.includes('fetch')||r.error.message?.includes('network'))){
+      await _enfileirarOffline('upsert', tabela, dados, conflictCol, null);
+      await _atualizarBadgeOffline();
+      return {data:null, error:null, _offline:true};
+    }
+    return r;
+  } else {
+    await _enfileirarOffline('upsert', tabela, dados, conflictCol, null);
+    await _atualizarBadgeOffline();
+    mostrarNotif(`💾 Sem internet — dado salvo localmente`);
+    return {data:null, error:null, _offline:true};
+  }
+}
+
+// Monitora reconexão e sincroniza automaticamente
+window.addEventListener('online', async () => {
+  await sincronizarFilaOffline();
+});
+
+// Inicializa badge ao abrir (caso haja fila de sessão anterior)
+setTimeout(async () => {
+  try{
+    await _abrirOfflineDB();
+    await _atualizarBadgeOffline();
+    const n = await _contarFilaOffline();
+    if(n > 0 && navigator.onLine){
+      mostrarNotif(`🔄 ${n} registro(s) offline pendente(s) — sincronizando...`);
+      setTimeout(sincronizarFilaOffline, 2000);
+    }
+  }catch(e){}
+}, 3000);
+
+// FIM DO MÓDULO OFFLINE
 /* SQL para criar tabela de auditoria no Supabase:
    create table if not exists auditoria_emsi (
      id uuid primary key default gen_random_uuid(),
@@ -2024,12 +2242,12 @@ async function salvarPaciente(){
   let error;
   if(pacSelecionadoModal){
     // Edição: não atualiza cadastrado_por
-    const r=await sb.from('pacientes').update(dadosBase).eq('id',pacSelecionadoModal);
+    const r=await sbUpdate('pacientes',dadosBase,'id',pacSelecionadoModal);
     error=r.error;
   } else {
     // Novo cadastro: inclui quem cadastrou
     const dadosInsert={...dadosBase,cadastrado_por:usuarioAtual.id,cadastrado_por_nome:nomeProf};
-    const r=await sb.from('pacientes').insert(dadosInsert);
+    const r=await sbInsert('pacientes',dadosInsert);
     error=r.error;
   }
 
@@ -2222,12 +2440,12 @@ function abrirModalVacPac(){document.getElementById('modal-vac-pac').classList.a
 async function salvarVacPac(){
   const pac=gV('nova-vac-pac');if(!pac){alert('Selecione o paciente.');return;}
   const dados={paciente_id:pac,vacina:gV('mvp-vacina'),categoria:gV('mvp-cat'),status:gV('mvp-status'),data_prevista:gV('mvp-prevista')||null,data_aplicada:gV('mvp-aplicada')||null,lote:gV('mvp-lote'),user_id:usuarioAtual.id};
-  const {error}=await sb.from('vacinas_paciente').insert(dados);
+  const {error}=await sbInsert('vacinas_paciente',dados);
   if(!error){showMsg('msg-vac-pac','ok');await carregarVacinasPac();renderVacinasPacientes();setTimeout(()=>fecharModal('modal-vac-pac'),1500);}
   else alert('Erro: '+error.message);
 }
 async function marcarVacinaAplicada(id){
-  const {error}=await sb.from('vacinas_paciente').update({status:'aplicada',data_aplicada:new Date().toISOString().split('T')[0]}).eq('id',id);
+  const {error}=await sbUpdate('vacinas_paciente',{status:'aplicada',data_aplicada:new Date().toISOString().split('T')[0]},'id',id);
   if(!error){await carregarVacinasPac();renderVacinasPacientes();}
 }
 
@@ -2259,8 +2477,8 @@ async function salvarGestante(){
   const dados={paciente_id:pacId,data_dum:gV('g-dum')||null,dpp:gV('g-dpp')||null,mes_gestacao:parseInt(gV('g-mes'))||null,risco:gV('g-risco'),peso:parseFloat(gV('g-peso'))||null,pressao:gV('g-pa'),prenatal_num:parseInt(gV('g-prenatal'))||null,vacinacao:gV('g-vac'),observacoes:gV('g-obs'),user_id:usuarioAtual.id};
   const exists=gestantes.find(x=>x.paciente_id===pacId);
   let error;
-  if(exists){const r=await sb.from('gestantes').update(dados).eq('id',exists.id);error=r.error;}
-  else{const r=await sb.from('gestantes').insert(dados);error=r.error;}
+  if(exists){const r=await sbUpdate('gestantes',dados,'id',exists.id);error=r.error;}
+  else{const r=await sbInsert('gestantes',dados);error=r.error;}
   if(!error){showMsg('msg-gest','ok');await carregarGestantes();renderGestantes();}
   else alert('Erro: '+error.message);
 }
@@ -2321,7 +2539,7 @@ async function salvarAtendimentoModulo(mod){
   const pacId=gV(c.pacSel);if(!pacId){alert('Selecione o paciente.');return;}
   const dados={paciente_id:pacId,data_atendimento:gV(c.dataId)||null,user_id:usuarioAtual.id};
   c.campos.forEach((campo,i)=>{const v=gV(c.ids[i]);dados[campo]=v||null;});
-  const {error}=await sb.from(c.tbl).insert(dados);
+  const {error}=await sbInsert(c.tbl,dados);
   if(!error){showMsg(c.msg,'ok');await carregarAtend(mod);renderAtendimentos(mod);renderDashboard();}
   else alert('Erro: '+error.message);
 }
@@ -2371,7 +2589,7 @@ async function salvarMental(){
     rede_servico:gV('sm-rede-serv'),encaminhamento:gV('sm-encam'),
     observacoes:gV('sm-obs'),user_id:usuarioAtual.id
   };
-  const {error}=await sb.from('saude_mental_pac').insert(dados);
+  const {error}=await sbInsert('saude_mental_pac',dados);
   if(!error){showMsg('msg-mental','ok');await carregarModulo('saude_mental_pac','dadosMental');renderMentalTabela();renderMentalPsico();renderMentalSuicidio();renderDashboard();}
   else alert('Erro: '+error.message);
 }
@@ -2418,7 +2636,7 @@ function renderMentalSuicidio(){
 // ===================== CRAS =====================
 async function salvarCras(){
   const dados={paciente_id:gV('cras-pac'),servico:gV('cras-serv'),data_atendimento:gV('cras-data')||null,tipo_demanda:gV('cras-demanda'),beneficio_acessado:gV('cras-benef'),programa_social:gV('cras-prog'),situacao_familiar:gV('cras-sit-fam'),renda_familiar:gV('cras-renda'),num_membros:parseInt(gV('cras-membros'))||0,criancas_vulneraveis:document.getElementById('cras-crianca')?.checked||false,situacao_violencia:document.getElementById('cras-violencia')?.checked||false,encaminhamento:gV('cras-encam'),observacoes:gV('cras-obs'),user_id:usuarioAtual.id};
-  const {error}=await sb.from('cras_creas').insert(dados);
+  const {error}=await sbInsert('cras_creas',dados);
   if(!error){showMsg('msg-cras','ok');await carregarModulo('cras_creas','dadosCras');renderCrasTabela();renderDashboard();}
   else alert('Erro: '+error.message);
 }
@@ -2437,7 +2655,7 @@ function renderCrasTabela(){
 // ===================== CONSELHO TUTELAR =====================
 async function salvarCT(){
   const dados={paciente_id:gV('ct-pac'),data_atendimento:gV('ct-data')||null,tipo_violacao:gV('ct-tipo'),agressor:gV('ct-agressor'),status_caso:gV('ct-status'),medida_aplicada:gV('ct-medida'),encaminhamento:gV('ct-encam'),observacoes:gV('ct-obs'),user_id:usuarioAtual.id};
-  const {error}=await sb.from('conselho_tutelar').insert(dados);
+  const {error}=await sbInsert('conselho_tutelar',dados);
   if(!error){showMsg('msg-ct','ok');await carregarModulo('conselho_tutelar','dadosCT');renderCTTabela();renderDashboard();}
   else alert('Erro: '+error.message);
 }
@@ -2456,7 +2674,7 @@ function renderCTTabela(){
 // ===================== SEGURANÇA PÚBLICA =====================
 async function salvarSeg(){
   const dados={paciente_id:gV('seg-pac'),data_atendimento:gV('seg-data')||null,tipo_ocorrencia:gV('seg-tipo'),envolvimento:gV('seg-envolvimento'),local:gV('seg-local'),boletim_ocorrencia:gV('seg-bo'),encaminhamento:gV('seg-encam'),observacoes:gV('seg-obs'),user_id:usuarioAtual.id};
-  const {error}=await sb.from('seguranca_publica').insert(dados);
+  const {error}=await sbInsert('seguranca_publica',dados);
   if(!error){showMsg('msg-seg','ok');await carregarModulo('seguranca_publica','dadosSeg');renderSegTabela();renderDashboard();}
   else alert('Erro: '+error.message);
 }
@@ -2475,7 +2693,7 @@ function renderSegTabela(){
 // ===================== SEC. SAÚDE MUNICIPAL =====================
 async function salvarSSM(){
   const dados={paciente_id:gV('ssm-pac'),data_atendimento:gV('ssm-data')||null,tipo_notificacao:gV('ssm-tipo'),servico:gV('ssm-serv'),motivo:gV('ssm-motivo'),encaminhamento:gV('ssm-encam'),data_retorno:gV('ssm-retorno')||null,status:gV('ssm-status'),observacoes:gV('ssm-obs'),user_id:usuarioAtual.id};
-  const {error}=await sb.from('sec_saude_municipal').insert(dados);
+  const {error}=await sbInsert('sec_saude_municipal',dados);
   if(!error){showMsg('msg-ssm','ok');await carregarModulo('sec_saude_municipal','dadosSSM');renderSSMTabela();renderDashboard();}
   else alert('Erro: '+error.message);
 }
@@ -2495,7 +2713,7 @@ function renderSSMTabela(){
 async function salvarObito(){
   const nome=gV('ob-nome');if(!nome){alert('Informe o nome.');return;}
   const dados={nome_falecido:nome,data_nascimento:gV('ob-nasc')||null,sexo:gV('ob-sexo'),idade_obito:parseInt(gV('ob-idade'))||null,aldeia:gV('ob-aldeia'),municipio:gV('ob-mun'),data_obito:gV('ob-data')||null,categoria_causa:gV('ob-cat'),causa_obito:gV('ob-causa'),cid10:gV('ob-cid'),local_obito:gV('ob-local'),observacoes:gV('ob-obs'),user_id:usuarioAtual.id};
-  const {error}=await sb.from('obitos').insert(dados);
+  const {error}=await sbInsert('obitos',dados);
   if(!error){showMsg('msg-obito','ok');await carregarModulo('obitos','dadosObitos','criado_em');renderObitosTabela();renderDashboard();}
   else alert('Erro: '+error.message);
 }
@@ -2528,7 +2746,7 @@ async function carregarFarm(){
 async function cadastrarFarm(){
   const nome=gV('farm-nome');if(!nome)return;
   const dados={nome,categoria:gV('farm-cat'),unidade:gV('farm-unidade'),quantidade_atual:parseInt(gV('farm-qtd-ini'))||0,quantidade_minima:parseInt(gV('farm-qtd-min'))||10,user_id:usuarioAtual.id};
-  const {error}=await sb.from('estoque_farm').insert(dados);
+  const {error}=await sbInsert('estoque_farm',dados);
   if(!error){showMsg('msg-farm-cad','ok');await carregarFarm();}
   else alert('Erro: '+error.message);
 }
@@ -2558,9 +2776,9 @@ async function confirmarMovFarm(){
   const qtd=parseInt(gV('mmf-qtd'))||0;if(qtd<=0)return;
   const item=estoqueAtual.find(f=>f.id===movFarmId);if(!item)return;
   const nova=movFarmTipo==='entrada'?item.quantidade_atual+qtd:Math.max(0,item.quantidade_atual-qtd);
-  const {error}=await sb.from('estoque_farm').update({quantidade_atual:nova}).eq('id',movFarmId);
+  const {error}=await sbUpdate('estoque_farm',{quantidade_atual:nova},'id',movFarmId);
   if(!error){
-    await sb.from('saidas_farm').insert({estoque_id:movFarmId,nome_item:item.nome,quantidade:qtd,tipo:movFarmTipo,motivo:gV('mmf-motivo'),user_id:usuarioAtual.id});
+    await sbInsert('saidas_farm',{estoque_id:movFarmId,nome_item:item.nome,quantidade:qtd,tipo:movFarmTipo,motivo:gV('mmf-motivo'),user_id:usuarioAtual.id});
     fecharModal('modal-mov-farm');await carregarFarm();
   }
 }
@@ -2568,8 +2786,8 @@ async function registrarSaidaFarm(){
   const id=gV('farm-saida-id');const qtd=parseInt(gV('farm-saida-qtd'))||1;const pacId=gV('farm-saida-pac');const motivo=gV('farm-saida-motivo');
   const item=estoqueAtual.find(f=>f.id===id);if(!item){alert('Selecione o medicamento.');return;}
   const nova=Math.max(0,item.quantidade_atual-qtd);
-  await sb.from('estoque_farm').update({quantidade_atual:nova}).eq('id',id);
-  await sb.from('saidas_farm').insert({estoque_id:id,nome_item:item.nome,quantidade:qtd,tipo:'saida',paciente_id:pacId||null,motivo,user_id:usuarioAtual.id});
+  await sbUpdate('estoque_farm',{quantidade_atual:nova},'id',id);
+  await sbInsert('saidas_farm',{estoque_id:id,nome_item:item.nome,quantidade:qtd,tipo:'saida',paciente_id:pacId||null,motivo,user_id:usuarioAtual.id});
   showMsg('msg-farm-saida','ok');await carregarFarm();await carregarSaidasFarm();renderSaidasFarm();
 }
 async function carregarSaidasFarm(){const {data}=await sb.from('saidas_farm').select('*').order('criado_em',{ascending:false}).limit(100);saidasFarm=data||[];}
@@ -2588,7 +2806,7 @@ async function carregarInsumos(){
 async function cadastrarIns(){
   const nome=gV('ins-nome');if(!nome)return;
   const dados={nome,categoria:gV('ins-cat'),unidade:gV('ins-unidade'),quantidade_atual:parseInt(gV('ins-qtd-ini'))||0,quantidade_minima:parseInt(gV('ins-qtd-min'))||5,user_id:usuarioAtual.id};
-  const {error}=await sb.from('insumos_odonto').insert(dados);
+  const {error}=await sbInsert('insumos_odonto',dados);
   if(!error){showMsg('msg-ins-cad','ok');await carregarInsumos();}
   else alert('Erro: '+error.message);
 }
@@ -2614,7 +2832,7 @@ async function confirmarMovIns(){
   const qtd=parseInt(gV('mmi-qtd'))||0;if(qtd<=0)return;
   const item=insumosAtual.find(f=>f.id===movInsId);if(!item)return;
   const nova=movInsTipo==='entrada'?item.quantidade_atual+qtd:Math.max(0,item.quantidade_atual-qtd);
-  const {error}=await sb.from('insumos_odonto').update({quantidade_atual:nova}).eq('id',movInsId);
+  const {error}=await sbUpdate('insumos_odonto',{quantidade_atual:nova},'id',movInsId);
   if(!error){fecharModal('modal-mov-ins');await carregarInsumos();}
 }
 
@@ -3063,7 +3281,7 @@ async function salvarVacPac(){
   const catSel=gV('mvp-cat');
   const categoria=catSel==='Manual'?gV('mvp-cat-manual'):catSel;
   const dados={paciente_id:pac,vacina,categoria,status:gV('mvp-status'),data_prevista:gV('mvp-prevista')||null,data_aplicada:gV('mvp-aplicada')||null,lote:gV('mvp-lote'),user_id:usuarioAtual.id};
-  const {error}=await sb.from('vacinas_paciente').insert(dados);
+  const {error}=await sbInsert('vacinas_paciente',dados);
   if(!error){showMsg('msg-vac-pac','ok');await carregarVacinasPac();renderVacinasPacientes();setTimeout(()=>fecharModal('modal-vac-pac'),1500);}
   else alert('Erro: '+error.message);
 }
@@ -3075,8 +3293,8 @@ async function registrarSaidaIns(){
   const pacId=gV('ins-saida-pac');const motivo=gV('ins-saida-motivo');
   const item=insumosAtual.find(f=>f.id===id);if(!item){alert('Selecione o insumo.');return;}
   const nova=Math.max(0,item.quantidade_atual-qtd);
-  await sb.from('insumos_odonto').update({quantidade_atual:nova}).eq('id',id);
-  await sb.from('insumos_odonto_mov').insert({insumo_id:id,nome_item:item.nome,quantidade:qtd,tipo:'saida',paciente_id:pacId||null,motivo,user_id:usuarioAtual.id});
+  await sbUpdate('insumos_odonto',{quantidade_atual:nova},'id',id);
+  await sbInsert('insumos_odonto_mov',{insumo_id:id,nome_item:item.nome,quantidade:qtd,tipo:'saida',paciente_id:pacId||null,motivo,user_id:usuarioAtual.id});
   showMsg('msg-ins-saida','ok');await carregarInsumos();renderSaidasIns();
 }
 async function renderSaidasIns(){
@@ -3100,7 +3318,7 @@ async function cadastrarIns(){
   const catManual=gV('ins-cat-manual');
   const categoria=catManual.trim()||catSel;
   const dados={nome,categoria,unidade:gV('ins-unidade'),quantidade_atual:parseInt(gV('ins-qtd-ini'))||0,quantidade_minima:parseInt(gV('ins-qtd-min'))||5,user_id:usuarioAtual.id};
-  const {error}=await sb.from('insumos_odonto').insert(dados);
+  const {error}=await sbInsert('insumos_odonto',dados);
   if(!error){showMsg('msg-ins-cad','ok');await carregarInsumos();renderSaidasIns();}
   else alert('Erro: '+error.message);
 }
@@ -3122,7 +3340,7 @@ async function salvarEducacao(){
     proxima_data:gV('edu-proxima')||null,proximo_tema:gV('edu-prox-tema'),
     observacoes:gV('edu-obs'),user_id:usuarioAtual.id
   };
-  const {error}=await sb.from('educacao_saude').insert(dados);
+  const {error}=await sbInsert('educacao_saude',dados);
   if(!error){showMsg('msg-edu','ok');await carregarEducacao();renderEducacaoTabela();renderStatsEducacao();}
   else alert('Erro: '+error.message);
 }
@@ -3258,11 +3476,13 @@ function monitorarConexao(){
   const setTxt=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   window.addEventListener('online',()=>{
     setEl('status-online','flex');setEl('status-offline','none');
-    setTxt('status-txt','Online');mostrarNotif('🟢 Conexão restaurada!');
+    setTxt('status-txt','Online');
+    mostrarNotif('🟢 Conexão restaurada! Sincronizando dados...');
+    setTimeout(sincronizarFilaOffline, 1500);
   });
   window.addEventListener('offline',()=>{
     setEl('status-online','none');setEl('status-offline','flex');
-    mostrarNotif('🔴 Sem conexão com a internet');
+    mostrarNotif('📡 Sem internet — dados serão salvos localmente');
   });
   if(!navigator.onLine){setEl('status-online','none');setEl('status-offline','flex');}
 }
