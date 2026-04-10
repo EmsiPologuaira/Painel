@@ -1612,21 +1612,37 @@ async function sincronizarFilaOffline(){
 }
 
 // Wrapper: tenta inserir online; se offline, enfileira
+// Usa offline_key para idempotência — evita duplicação ao sincronizar
 async function sbInsert(tabela, dados){
   if(navigator.onLine){
-    const r = await sb.from(tabela).insert(dados);
-    if(r.error && (r.error.message?.includes('fetch')||r.error.message?.includes('network'))){
-      // Falha de rede mesmo estando "online"
+    let r;
+    try{
+      r = await sb.from(tabela).insert(dados);
+    }catch(e){
+      // Exceção de rede — enfileira
       await _enfileirarOffline('insert', tabela, dados);
       await _atualizarBadgeOffline();
-      mostrarNotif(`💾 Salvo offline — será enviado ao reconectar`);
+      mostrarNotif('💾 Salvo offline — será enviado ao reconectar');
       return {data:null, error:null, _offline:true};
+    }
+    if(r.error){
+      const isNetErr = r.error.message?.includes('fetch') ||
+                       r.error.message?.includes('network') ||
+                       r.error.message?.includes('Failed to fetch') ||
+                       r.error.code === 'PGRST301';
+      if(isNetErr){
+        await _enfileirarOffline('insert', tabela, dados);
+        await _atualizarBadgeOffline();
+        mostrarNotif('💾 Salvo offline — será enviado ao reconectar');
+        return {data:null, error:null, _offline:true};
+      }
+      return r;
     }
     return r;
   } else {
     await _enfileirarOffline('insert', tabela, dados);
     await _atualizarBadgeOffline();
-    mostrarNotif(`💾 Sem internet — dado salvo localmente`);
+    mostrarNotif('💾 Sem internet — dado salvo localmente');
     return {data:null, error:null, _offline:true};
   }
 }
@@ -2084,12 +2100,17 @@ function _registrarCanais(){
     });
 
   // Atendimentos de saúde
+  // Debounce: ignora eventos do próprio usuário nos primeiros 3s após salvar
+  let _rtIgnoreAtend = false;
   ['atendimentos_medico','atendimentos_odonto','atendimentos_nutricao','atendimentos_social'].forEach(t=>{
     canalPrincipal.on('postgres_changes',{event:'INSERT',schema:'public',table:t},payload=>{
       const p=pacientes.find(x=>x.id===payload.new.paciente_id);
       const nomeTab={atendimentos_medico:'Médico',atendimentos_odonto:'Odonto',atendimentos_nutricao:'Nutrição',atendimentos_social:'Social'};
-      mostrarNotif(`📋 Novo atend. <strong>${nomeTab[t]||t}</strong>${p?' — '+p.nome:''}`);
-      carregarTudo();
+      // Só notifica e recarrega se não foi inserção local recente (evita duplicação)
+      if(payload.new.user_id !== usuarioAtual?.id || !_rtIgnoreAtend){
+        mostrarNotif(`📋 Novo atend. <strong>${nomeTab[t]||t}</strong>${p?' — '+p.nome:''}`);
+        carregarTudo();
+      }
     });
   });
 
@@ -2539,6 +2560,9 @@ async function salvarAtendimentoModulo(mod){
   const pacId=gV(c.pacSel);if(!pacId){alert('Selecione o paciente.');return;}
   const dados={paciente_id:pacId,data_atendimento:gV(c.dataId)||null,user_id:usuarioAtual.id};
   c.campos.forEach((campo,i)=>{const v=gV(c.ids[i]);dados[campo]=v||null;});
+  // Ativa flag para o realtime não recarregar em duplicata
+  _rtIgnoreAtend = true;
+  setTimeout(()=>{ _rtIgnoreAtend = false; }, 4000);
   const {error}=await sbInsert(c.tbl,dados);
   if(!error){showMsg(c.msg,'ok');await carregarAtend(mod);renderAtendimentos(mod);renderDashboard();}
   else alert('Erro: '+error.message);
