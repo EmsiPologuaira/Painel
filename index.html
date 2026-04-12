@@ -789,7 +789,7 @@ td.zero{color:#ccc}
     </div>
     <div class="tw">
       <div class="tw-head">📋 Histórico Nutricional</div>
-      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Peso</th><th>Altura</th><th>IMC</th><th>Classificação</th><th>Circ. Abd.</th><th>Diagnóstico</th><th>Retorno</th></tr></thead><tbody id="tbody-nut"></tbody></table></div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Peso</th><th>Altura</th><th>IMC</th><th>Classificação</th><th>Circ. Abd.</th><th>Diagnóstico</th><th>Retorno</th><th id="th-del-nut"></th></tr></thead><tbody id="tbody-nut"></tbody></table></div>
     </div>
   </div></div>
 
@@ -817,7 +817,7 @@ td.zero{color:#ccc}
     </div>
     <div class="tw">
       <div class="tw-head">📋 Histórico de Atendimentos Sociais</div>
-      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Demanda</th><th>Vulnerabilidades</th><th>Encaminhamentos</th><th>Benefícios</th></tr></thead><tbody id="tbody-soc"></tbody></table></div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Demanda</th><th>Vulnerabilidades</th><th>Encaminhamentos</th><th>Benefícios</th><th id="th-del-soc"></th></tr></thead><tbody id="tbody-soc"></tbody></table></div>
     </div>
   </div></div>
 
@@ -891,7 +891,7 @@ td.zero{color:#ccc}
           <option value="psicotropico">Psicotrópicos</option><option value="violencia">Com Violência</option><option value="alto">Risco Alto/Iminente</option>
         </select>
       </div>
-      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Tipo Atend.</th><th>CID</th><th>Diagnóstico</th><th>Psicotr.</th><th>Violência</th><th>Risco</th><th>T. Suicídio</th><th>Rede</th><th>Encam.</th></tr></thead><tbody id="tbody-mental"></tbody></table></div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Tipo Atend.</th><th>CID</th><th>Diagnóstico</th><th>Psicotr.</th><th>Violência</th><th>Risco</th><th>T. Suicídio</th><th>Rede</th><th>Encam.</th><th id="th-del-mental"></th></tr></thead><tbody id="tbody-mental"></tbody></table></div>
     </div>
     <div class="tw" style="margin-top:14px">
       <div class="tw-head" style="background:linear-gradient(135deg,#1e1b4b,#4c1d95)">💊 Usuários de Psicotrópicos</div>
@@ -956,7 +956,7 @@ td.zero{color:#ccc}
     </div>
     <div class="tw">
       <div class="tw-head">📋 Histórico — CRAS/CREAS</div>
-      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente/Família</th><th>Serviço</th><th>Demanda</th><th>Situação Familiar</th><th>Benefício</th><th>Encam.</th></tr></thead><tbody id="tbody-cras"></tbody></table></div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente/Família</th><th>Serviço</th><th>Demanda</th><th>Situação Familiar</th><th>Benefício</th><th>Encam.</th><th id="th-del-cras"></th></tr></thead><tbody id="tbody-cras"></tbody></table></div>
     </div>
   </div></div>
 
@@ -1003,7 +1003,7 @@ td.zero{color:#ccc}
     </div>
     <div class="tw">
       <div class="tw-head">📋 Ocorrências — Conselho Tutelar</div>
-      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Criança/Adolescente</th><th>Tipo Violação</th><th>Agressor</th><th>Status</th><th>Medida</th><th>Encam.</th></tr></thead><tbody id="tbody-ct"></tbody></table></div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Criança/Adolescente</th><th>Tipo Violação</th><th>Agressor</th><th>Status</th><th>Medida</th><th>Encam.</th><th id="th-del-ct"></th></tr></thead><tbody id="tbody-ct"></tbody></table></div>
     </div>
   </div></div>
 
@@ -1044,7 +1044,7 @@ td.zero{color:#ccc}
     </div>
     <div class="tw">
       <div class="tw-head">📋 Ocorrências — Segurança Pública</div>
-      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Indígena</th><th>Tipo</th><th>Envolvimento</th><th>Local</th><th>BO</th><th>Encam.</th></tr></thead><tbody id="tbody-seg"></tbody></table></div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Indígena</th><th>Tipo</th><th>Envolvimento</th><th>Local</th><th>BO</th><th>Encam.</th><th id="th-del-seg"></th></tr></thead><tbody id="tbody-seg"></tbody></table></div>
     </div>
   </div></div>
 
@@ -1086,7 +1086,7 @@ td.zero{color:#ccc}
     </div>
     <div class="tw">
       <div class="tw-head">📋 Notificações — Sec. Saúde Municipal</div>
-      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Tipo</th><th>Serviço</th><th>Motivo</th><th>Encam.</th><th>Retorno</th><th>Status</th></tr></thead><tbody id="tbody-ssm"></tbody></table></div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Paciente</th><th>Tipo</th><th>Serviço</th><th>Motivo</th><th>Encam.</th><th>Retorno</th><th>Status</th><th id="th-del-ssm"></th></tr></thead><tbody id="tbody-ssm"></tbody></table></div>
     </div>
   </div></div>
 
@@ -1156,7 +1156,7 @@ td.zero{color:#ccc}
           <option value="Doenças Infecciosas">Doenças Infecciosas</option>
         </select>
       </div>
-      <div style="overflow-x:auto"><table><thead><tr><th>Nome</th><th>Data Óbito</th><th>Aldeia</th><th>Sexo</th><th>Idade</th><th>Categoria</th><th>Causa</th><th>CID</th><th>Local</th></tr></thead><tbody id="tbody-obitos"></tbody></table></div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Nome</th><th>Data Óbito</th><th>Aldeia</th><th>Sexo</th><th>Idade</th><th>Categoria</th><th>Causa</th><th>CID</th><th>Local</th><th id="th-del-obitos"></th></tr></thead><tbody id="tbody-obitos"></tbody></table></div>
     </div>
   </div></div>
 
@@ -1470,14 +1470,11 @@ const sb=createClient(SB_URL,SB_KEY,{
 });
 const ADMIN='clsipolobaseguaira@hotmail.com';
 
-// ===================== MÓDULO OFFLINE — FILA IndexedDB =====================
-// Guarda todos os INSERT/UPDATE quando offline e sincroniza ao reconectar.
-
+// ===================== MODULO OFFLINE — FILA IndexedDB =====================
 const OFFLINE_DB_NAME = 'emsi_offline_v1';
 const OFFLINE_STORE   = 'fila_sync';
 let _offlineDB = null;
 
-// Abre (ou cria) o banco IndexedDB
 function _abrirOfflineDB(){
   return new Promise((resolve, reject) => {
     if(_offlineDB){ resolve(_offlineDB); return; }
@@ -1485,8 +1482,7 @@ function _abrirOfflineDB(){
     req.onupgradeneeded = e => {
       const db = e.target.result;
       if(!db.objectStoreNames.contains(OFFLINE_STORE)){
-        const store = db.createObjectStore(OFFLINE_STORE, {keyPath:'id', autoIncrement:true});
-        store.createIndex('tabela', 'tabela', {unique:false});
+        db.createObjectStore(OFFLINE_STORE, {keyPath:'id', autoIncrement:true});
       }
     };
     req.onsuccess = e => { _offlineDB = e.target.result; resolve(_offlineDB); };
@@ -1494,36 +1490,26 @@ function _abrirOfflineDB(){
   });
 }
 
-// Adiciona um item à fila
 async function _enfileirarOffline(operacao, tabela, dados, matchCol, matchVal){
   const db = await _abrirOfflineDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(OFFLINE_STORE, 'readwrite');
-    tx.objectStore(OFFLINE_STORE).add({
-      operacao,       // 'insert' | 'update'
-      tabela,
-      dados,
-      matchCol: matchCol || null,
-      matchVal: matchVal || null,
-      criado_em: new Date().toISOString()
-    });
+    tx.objectStore(OFFLINE_STORE).add({operacao,tabela,dados,matchCol:matchCol||null,matchVal:matchVal||null,criado_em:new Date().toISOString()});
     tx.oncomplete = resolve;
     tx.onerror    = e => reject(e.target.error);
   });
 }
 
-// Lê todos os itens da fila
 async function _lerFilaOffline(){
   const db = await _abrirOfflineDB();
   return new Promise((resolve, reject) => {
-    const tx    = db.transaction(OFFLINE_STORE, 'readonly');
-    const req   = tx.objectStore(OFFLINE_STORE).getAll();
+    const tx = db.transaction(OFFLINE_STORE, 'readonly');
+    const req = tx.objectStore(OFFLINE_STORE).getAll();
     req.onsuccess = e => resolve(e.target.result || []);
     req.onerror   = e => reject(e.target.error);
   });
 }
 
-// Remove um item da fila pelo id
 async function _removerFilaOffline(id){
   const db = await _abrirOfflineDB();
   return new Promise((resolve, reject) => {
@@ -1534,7 +1520,6 @@ async function _removerFilaOffline(id){
   });
 }
 
-// Conta quantos itens estão na fila
 async function _contarFilaOffline(){
   const db = await _abrirOfflineDB();
   return new Promise((resolve) => {
@@ -1545,7 +1530,6 @@ async function _contarFilaOffline(){
   });
 }
 
-// Atualiza badge de pendentes no header
 async function _atualizarBadgeOffline(){
   const n = await _contarFilaOffline();
   let badge = document.getElementById('badge-offline-fila');
@@ -1556,26 +1540,23 @@ async function _atualizarBadgeOffline(){
       badge.style.cssText = 'display:flex;align-items:center;gap:5px;background:rgba(245,200,66,.2);border:1px solid rgba(245,200,66,.5);border-radius:12px;padding:3px 10px;font-size:.6rem;font-weight:700;color:#f5c842;cursor:pointer';
       badge.title = 'Dados pendentes para sincronizar';
       badge.onclick = sincronizarFilaOffline;
-      const headerRight = document.querySelector('.header-right');
-      if(headerRight) headerRight.insertBefore(badge, headerRight.firstChild);
+      const hr = document.querySelector('.header-right');
+      if(hr) hr.insertBefore(badge, hr.firstChild);
     }
-    badge.innerHTML = `⏳ <span>${n} pendente${n>1?'s':''}</span>`;
+    badge.innerHTML = '\u23f3 <span>'+n+' pendente'+(n>1?'s':'')+'</span>';
   } else {
     if(badge) badge.remove();
   }
 }
 
-// Sincroniza a fila com o Supabase (chama quando online)
 let _sincronizando = false;
 async function sincronizarFilaOffline(){
   if(_sincronizando || !navigator.onLine) return;
   _sincronizando = true;
   const fila = await _lerFilaOffline();
   if(fila.length === 0){ _sincronizando = false; return; }
-
-  mostrarNotif(`🔄 Sincronizando ${fila.length} registro(s) offline...`);
+  mostrarNotif('\ud83d\udd04 Sincronizando '+fila.length+' registro(s) offline...');
   let ok = 0, erros = 0;
-
   for(const item of fila){
     try{
       let error;
@@ -1589,51 +1570,32 @@ async function sincronizarFilaOffline(){
         const r = await sb.from(item.tabela).upsert(item.dados, {onConflict: item.matchCol || 'id'});
         error = r.error;
       }
-      if(!error){
-        await _removerFilaOffline(item.id);
-        ok++;
-      } else {
-        erros++;
-        console.warn('Sync error:', item.tabela, error.message);
-      }
-    }catch(e){ erros++; console.warn('Sync exception:', e); }
+      if(!error){ await _removerFilaOffline(item.id); ok++; }
+      else { erros++; console.warn('Sync error:', item.tabela, error.message); }
+    }catch(e){ erros++; }
   }
-
   _sincronizando = false;
   await _atualizarBadgeOffline();
-
-  if(ok > 0){
-    mostrarNotif(`✅ ${ok} registro(s) sincronizado(s) com sucesso!`);
-    try{ await carregarTudo(); }catch(e){}
-  }
-  if(erros > 0){
-    mostrarNotif(`⚠️ ${erros} registro(s) com erro — serão tentados novamente.`);
-  }
+  if(ok > 0){ mostrarNotif('\u2705 '+ok+' registro(s) sincronizado(s)!'); try{await carregarTudo();}catch(e){} }
+  if(erros > 0) mostrarNotif('\u26a0\ufe0f '+erros+' registro(s) com erro — tentando novamente em breve.');
 }
 
-// Wrapper: tenta inserir online; se offline, enfileira
-// Usa offline_key para idempotência — evita duplicação ao sincronizar
 async function sbInsert(tabela, dados){
   if(navigator.onLine){
     let r;
-    try{
-      r = await sb.from(tabela).insert(dados);
-    }catch(e){
-      // Exceção de rede — enfileira
+    try{ r = await sb.from(tabela).insert(dados); }
+    catch(e){
       await _enfileirarOffline('insert', tabela, dados);
       await _atualizarBadgeOffline();
-      mostrarNotif('💾 Salvo offline — será enviado ao reconectar');
+      mostrarNotif('\ud83d\udcbe Salvo offline \u2014 ser\u00e1 enviado ao reconectar');
       return {data:null, error:null, _offline:true};
     }
     if(r.error){
-      const isNetErr = r.error.message?.includes('fetch') ||
-                       r.error.message?.includes('network') ||
-                       r.error.message?.includes('Failed to fetch') ||
-                       r.error.code === 'PGRST301';
-      if(isNetErr){
+      const netErr = r.error.message?.includes('fetch')||r.error.message?.includes('network')||r.error.message?.includes('Failed to fetch')||r.error.code==='PGRST301';
+      if(netErr){
         await _enfileirarOffline('insert', tabela, dados);
         await _atualizarBadgeOffline();
-        mostrarNotif('💾 Salvo offline — será enviado ao reconectar');
+        mostrarNotif('\ud83d\udcbe Salvo offline \u2014 ser\u00e1 enviado ao reconectar');
         return {data:null, error:null, _offline:true};
       }
       return r;
@@ -1642,67 +1604,64 @@ async function sbInsert(tabela, dados){
   } else {
     await _enfileirarOffline('insert', tabela, dados);
     await _atualizarBadgeOffline();
-    mostrarNotif('💾 Sem internet — dado salvo localmente');
+    mostrarNotif('\ud83d\udcbe Sem internet \u2014 dado salvo localmente');
     return {data:null, error:null, _offline:true};
   }
 }
 
-// Wrapper: tenta update online; se offline, enfileira
 async function sbUpdate(tabela, dados, matchCol, matchVal){
   if(navigator.onLine){
-    const r = await sb.from(tabela).update(dados).eq(matchCol, matchVal);
-    if(r.error && (r.error.message?.includes('fetch')||r.error.message?.includes('network'))){
+    let r;
+    try{ r = await sb.from(tabela).update(dados).eq(matchCol, matchVal); }
+    catch(e){
       await _enfileirarOffline('update', tabela, dados, matchCol, matchVal);
       await _atualizarBadgeOffline();
-      mostrarNotif(`💾 Atualização salva offline`);
       return {data:null, error:null, _offline:true};
+    }
+    if(r.error){
+      const netErr = r.error.message?.includes('fetch')||r.error.message?.includes('network');
+      if(netErr){
+        await _enfileirarOffline('update', tabela, dados, matchCol, matchVal);
+        await _atualizarBadgeOffline();
+        return {data:null, error:null, _offline:true};
+      }
+      return r;
     }
     return r;
   } else {
     await _enfileirarOffline('update', tabela, dados, matchCol, matchVal);
     await _atualizarBadgeOffline();
-    mostrarNotif(`💾 Sem internet — atualização salva localmente`);
+    mostrarNotif('\ud83d\udcbe Sem internet \u2014 atualiza\u00e7\u00e3o salva localmente');
     return {data:null, error:null, _offline:true};
   }
 }
 
-// Wrapper: upsert com fallback offline
-async function sbUpsert(tabela, dados, conflictCol){
-  if(navigator.onLine){
-    const r = await sb.from(tabela).upsert(dados, {onConflict: conflictCol});
-    if(r.error && (r.error.message?.includes('fetch')||r.error.message?.includes('network'))){
-      await _enfileirarOffline('upsert', tabela, dados, conflictCol, null);
-      await _atualizarBadgeOffline();
-      return {data:null, error:null, _offline:true};
-    }
-    return r;
-  } else {
-    await _enfileirarOffline('upsert', tabela, dados, conflictCol, null);
-    await _atualizarBadgeOffline();
-    mostrarNotif(`💾 Sem internet — dado salvo localmente`);
-    return {data:null, error:null, _offline:true};
-  }
-}
-
-// Monitora reconexão e sincroniza automaticamente
 window.addEventListener('online', async () => {
-  await sincronizarFilaOffline();
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.style.display=v;};
+  const setTxt=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('status-online','flex');setEl('status-offline','none');
+  setTxt('status-txt','Online');
+  mostrarNotif('\ud83d\udfe2 Conex\u00e3o restaurada! Sincronizando...');
+  setTimeout(sincronizarFilaOffline, 1500);
 });
 
-// Inicializa badge ao abrir (caso haja fila de sessão anterior)
+window.addEventListener('offline', () => {
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.style.display=v;};
+  setEl('status-online','none');setEl('status-offline','flex');
+  mostrarNotif('\ud83d\udce1 Sem internet \u2014 dados ser\u00e3o salvos localmente');
+});
+
 setTimeout(async () => {
   try{
     await _abrirOfflineDB();
     await _atualizarBadgeOffline();
     const n = await _contarFilaOffline();
-    if(n > 0 && navigator.onLine){
-      mostrarNotif(`🔄 ${n} registro(s) offline pendente(s) — sincronizando...`);
-      setTimeout(sincronizarFilaOffline, 2000);
-    }
+    if(n > 0 && navigator.onLine){ mostrarNotif('\ud83d\udd04 '+n+' registro(s) offline pendente(s) \u2014 sincronizando...'); setTimeout(sincronizarFilaOffline, 2000); }
   }catch(e){}
 }, 3000);
 
-// FIM DO MÓDULO OFFLINE
+// FIM DO MODULO OFFLINE
+
 /* SQL para criar tabela de auditoria no Supabase:
    create table if not exists auditoria_emsi (
      id uuid primary key default gen_random_uuid(),
@@ -1991,7 +1950,7 @@ async function iniciarApp(user){
       const huEl=document.getElementById('huser');if(huEl)huEl.textContent='👑 Coordenador';
       document.getElementById('tabs-admin').style.display='flex';
       // Mostrar coluna de exclusão para admin
-      ['th-del-med','th-del-odo'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='Ação';});
+      ['th-del-med','th-del-odo','th-del-nut','th-del-soc','th-del-mental','th-del-cras','th-del-ct','th-del-seg','th-del-ssm','th-del-obitos'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='Ação';});
       const firstTab=document.querySelector('#tabs-admin .tab-btn');if(firstTab)firstTab.classList.add('active');
       document.getElementById('tab-dash').classList.add('active');
       try{carregarUsuarios();}catch(e){}
@@ -2099,18 +2058,15 @@ function _registrarCanais(){
       renderPacientes();popularSelects();renderDashboard();
     });
 
-  // Atendimentos de saúde
-  // Debounce: ignora eventos do próprio usuário nos primeiros 3s após salvar
+  // Atendimentos de saúde (debounce: ignora evento do proprio usuario por 4s)
   let _rtIgnoreAtend = false;
   ['atendimentos_medico','atendimentos_odonto','atendimentos_nutricao','atendimentos_social'].forEach(t=>{
     canalPrincipal.on('postgres_changes',{event:'INSERT',schema:'public',table:t},payload=>{
+      if(payload.new.user_id === usuarioAtual?.id && _rtIgnoreAtend) return;
       const p=pacientes.find(x=>x.id===payload.new.paciente_id);
       const nomeTab={atendimentos_medico:'Médico',atendimentos_odonto:'Odonto',atendimentos_nutricao:'Nutrição',atendimentos_social:'Social'};
-      // Só notifica e recarrega se não foi inserção local recente (evita duplicação)
-      if(payload.new.user_id !== usuarioAtual?.id || !_rtIgnoreAtend){
-        mostrarNotif(`📋 Novo atend. <strong>${nomeTab[t]||t}</strong>${p?' — '+p.nome:''}`);
-        carregarTudo();
-      }
+      mostrarNotif(`?? Novo atend. <strong>${nomeTab[t]||t}</strong>${p?' — '+p.nome:''}`);
+      carregarTudo();
     });
   });
 
@@ -2560,9 +2516,7 @@ async function salvarAtendimentoModulo(mod){
   const pacId=gV(c.pacSel);if(!pacId){alert('Selecione o paciente.');return;}
   const dados={paciente_id:pacId,data_atendimento:gV(c.dataId)||null,user_id:usuarioAtual.id};
   c.campos.forEach((campo,i)=>{const v=gV(c.ids[i]);dados[campo]=v||null;});
-  // Ativa flag para o realtime não recarregar em duplicata
-  _rtIgnoreAtend = true;
-  setTimeout(()=>{ _rtIgnoreAtend = false; }, 4000);
+  _rtIgnoreAtend = true; setTimeout(()=>{ _rtIgnoreAtend = false; }, 4000);
   const {error}=await sbInsert(c.tbl,dados);
   if(!error){showMsg(c.msg,'ok');await carregarAtend(mod);renderAtendimentos(mod);renderDashboard();}
   else alert('Erro: '+error.message);
@@ -2575,9 +2529,10 @@ function renderAtendimentos(mod){
     const pac=pacientes.find(p=>p.id===r.paciente_id);
     const vals=c.campos.map(f=>r[f]||'—');
     const btnExcluir=isAdmin?`<td><button class="btn btn-danger btn-sm" style="font-size:.6rem;padding:3px 8px" onclick="excluirAtendimento('${mod}','${r.id}','${(pac?.nome||'').replace(/'/g,'\\\'')}')" title="Excluir registro">🗑️</button></td>`:'<td></td>';
-    return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td>${vals.map(v=>`<td>${v}</td>`).join('')}${btnExcluir}</tr>`;
+    const btnDel=isAdmin?`<td><button class="btn btn-danger btn-sm" style="font-size:.6rem;padding:3px 8px" onclick="excluirRegistro('saude_mental_pac','${r.id}')" title="Excluir">🗑️</button></td>`:'<td></td>';
+    return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td>${vals.map(v=>`<td>${v}</td>`).join('')}${btnExcluir}${btnDel}</tr>`;
   }).join('');
-  if(!arr.length)tbody.innerHTML=`<tr><td colspan="${c.cols.length+(isAdmin?1:0)}" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>`;
+  if(!arr.length)tbody.innerHTML=`<tr><td colspan="${c.cols.length+(isAdmin?1:0)}" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td>${btnDel}</tr>`;
 }
 
 // ===================== EXCLUIR ATENDIMENTO (somente ADM) =====================
@@ -2617,6 +2572,28 @@ async function salvarMental(){
   if(!error){showMsg('msg-mental','ok');await carregarModulo('saude_mental_pac','dadosMental');renderMentalTabela();renderMentalPsico();renderMentalSuicidio();renderDashboard();}
   else alert('Erro: '+error.message);
 }
+
+// ===================== EXCLUIR REGISTRO GENERICO (somente ADM) =====================
+async function excluirRegistro(tabela, id){
+  if(!isAdmin){alert('Apenas o coordenador pode excluir registros.');return;}
+  const nomes={saude_mental_pac:'Saúde Mental',cras_creas:'CRAS/CREAS',conselho_tutelar:'Conselho Tutelar',seguranca_publica:'Segurança Pública',sec_saude_municipal:'Sec. Saúde Municipal',obitos:'Óbito'};
+  const label=nomes[tabela]||tabela;
+  if(!confirm('⚠️ Excluir registro de '+label+'?\n\nEsta ação não pode ser desfeita e será registrada na auditoria.'))return;
+  const {error}=await sb.from(tabela).delete().eq('id',id);
+  if(!error){
+    try{registrarAuditoria('EXCLUSAO_REGISTRO','Tabela: '+tabela+' | ID: '+id);}catch(e){}
+    mostrarNotif('??️ Registro de <strong>'+label+'</strong> excluído.');
+    const mapa={
+      saude_mental_pac:async()=>{await carregarModulo('saude_mental_pac','dadosMental');renderMentalTabela();renderMentalPsico();renderMentalSuicidio();renderDashboard();},
+      cras_creas:async()=>{await carregarModulo('cras_creas','dadosCras');renderCrasTabela();renderDashboard();},
+      conselho_tutelar:async()=>{await carregarModulo('conselho_tutelar','dadosCT');renderCTTabela();renderDashboard();},
+      seguranca_publica:async()=>{await carregarModulo('seguranca_publica','dadosSeg');renderSegTabela();renderDashboard();},
+      sec_saude_municipal:async()=>{await carregarModulo('sec_saude_municipal','dadosSSM');renderSSMTabela();renderDashboard();},
+      obitos:async()=>{await carregarModulo('obitos','dadosObitos','criado_em');renderObitosTabela();renderDashboard();}
+    };
+    if(mapa[tabela]) await mapa[tabela]();
+  } else { alert('Erro ao excluir: '+error.message); }
+}
 function renderMentalTabela(){
   const filtro=document.getElementById('filtro-mental')?.value||'todos';
   let lista=dadosMental;
@@ -2628,7 +2605,7 @@ function renderMentalTabela(){
   tbody.innerHTML=lista.map(r=>{
     const pac=pacientes.find(p=>p.id===r.paciente_id);
     const rc=r.risco_suicidio==='alto'||r.risco_suicidio==='iminente'?'risco-alto':r.risco_suicidio==='médio'?'risco-medio':r.risco_suicidio==='baixo'?'risco-baixo':'risco-sem';
-    return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td><td><span class="badge badge-roxo">${r.tipo_atendimento||'—'}</span></td><td>${r.cid10||'—'}</td><td>${r.diagnostico||'—'}</td><td>${r.usa_psicotropico?'<span class="badge badge-amarelo">💊 Sim</span>':'<span class="badge badge-cinza">Não</span>'}</td><td>${r.situacao_violencia?`<span class="badge badge-vermelho">${r.situacao_violencia}</span>`:'<span class="badge badge-cinza">—</span>'}</td><td><span class="${rc}">${r.risco_suicidio||'—'}</span></td><td>${r.tentativa_suicidio?'<span class="badge badge-vermelho">🆘 Sim</span>':'<span class="badge badge-cinza">Não</span>'}</td><td>${r.acompanhamento_rede?'<span class="badge badge-verde">✅</span>':'<span class="badge badge-cinza">Não</span>'}</td><td>${r.encaminhamento||'—'}</td></tr>`;
+    return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td><td><span class="badge badge-roxo">${r.tipo_atendimento||'—'}</span></td><td>${r.cid10||'—'}</td><td>${r.diagnostico||'—'}</td><td>${r.usa_psicotropico?'<span class="badge badge-amarelo">💊 Sim</span>':'<span class="badge badge-cinza">Não</span>'}</td><td>${r.situacao_violencia?`<span class="badge badge-vermelho">${r.situacao_violencia}</span>`:'<span class="badge badge-cinza">—</span>'}</td><td><span class="${rc}">${r.risco_suicidio||'—'}</span></td><td>${r.tentativa_suicidio?'<span class="badge badge-vermelho">🆘 Sim</span>':'<span class="badge badge-cinza">Não</span>'}</td><td>${r.acompanhamento_rede?'<span class="badge badge-verde">✅</span>':'<span class="badge badge-cinza">Não</span>'}</td><td>${r.encaminhamento||'—'}</td>${btnDel}</tr>`;
   }).join('');
   if(!lista.length)tbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>';
   const el=document.getElementById('stats-mental');
@@ -2666,8 +2643,8 @@ async function salvarCras(){
 }
 function renderCrasTabela(){
   const tbody=document.getElementById('tbody-cras');if(!tbody)return;
-  tbody.innerHTML=dadosCras.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td><td><span class="badge badge-azul">${r.servico||'—'}</span></td><td>${r.tipo_demanda||'—'}</td><td>${r.situacao_familiar||'—'}</td><td>${r.beneficio_acessado||'—'}</td><td>${r.encaminhamento||'—'}</td></tr>`;}).join('');
-  if(!dadosCras.length)tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>';
+  tbody.innerHTML=dadosCras.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);const btnDel=isAdmin?`<td><button class="btn btn-danger btn-sm" style="font-size:.6rem;padding:3px 8px" onclick="excluirRegistro('cras_creas','${r.id}')" title="Excluir">??️</button></td>`:'<td></td>';return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td><td><span class="badge badge-azul">${r.servico||'—'}</span></td><td>${r.tipo_demanda||'—'}</td><td>${r.situacao_familiar||'—'}</td><td>${r.beneficio_acessado||'—'}</td><td>${r.encaminhamento||'—'}</td>${btnDel}</tr>`;}).join('');
+  if(!dadosCras.length)tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>';
   const el=document.getElementById('stats-cras');
   if(el)el.innerHTML=[
     {l:'Total Atend.',v:dadosCras.length,t:'teal',i:'🏛️'},
@@ -2685,8 +2662,8 @@ async function salvarCT(){
 }
 function renderCTTabela(){
   const tbody=document.getElementById('tbody-ct');if(!tbody)return;
-  tbody.innerHTML=dadosCT.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td><td><span class="badge badge-vermelho">${r.tipo_violacao||'—'}</span></td><td>${r.agressor||'—'}</td><td><span class="badge ${r.status_caso==='Encerrado'?'badge-verde':'badge-amarelo'}">${r.status_caso||'—'}</span></td><td>${r.medida_aplicada||'—'}</td><td>${r.encaminhamento||'—'}</td></tr>`;}).join('');
-  if(!dadosCT.length)tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>';
+  tbody.innerHTML=dadosCT.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);const btnDel=isAdmin?`<td><button class="btn btn-danger btn-sm" style="font-size:.6rem;padding:3px 8px" onclick="excluirRegistro('conselho_tutelar','${r.id}')" title="Excluir">??️</button></td>`:'<td></td>';return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td><td><span class="badge badge-vermelho">${r.tipo_violacao||'—'}</span></td><td>${r.agressor||'—'}</td><td><span class="badge ${r.status_caso==='Encerrado'?'badge-verde':'badge-amarelo'}">${r.status_caso||'—'}</span></td><td>${r.medida_aplicada||'—'}</td><td>${r.encaminhamento||'—'}</td>${btnDel}</tr>`;}).join('');
+  if(!dadosCT.length)tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>';
   const el=document.getElementById('stats-ct');
   if(el)el.innerHTML=[
     {l:'Total Ocorr.',v:dadosCT.length,t:'aviso',i:'👨‍⚖️'},
@@ -2704,8 +2681,8 @@ async function salvarSeg(){
 }
 function renderSegTabela(){
   const tbody=document.getElementById('tbody-seg');if(!tbody)return;
-  tbody.innerHTML=dadosSeg.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td><td><span class="badge badge-preto">${r.tipo_ocorrencia||'—'}</span></td><td>${r.envolvimento||'—'}</td><td>${r.local||'—'}</td><td>${r.boletim_ocorrencia||'—'}</td><td>${r.encaminhamento||'—'}</td></tr>`;}).join('');
-  if(!dadosSeg.length)tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>';
+  tbody.innerHTML=dadosSeg.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);const btnDel=isAdmin?`<td><button class="btn btn-danger btn-sm" style="font-size:.6rem;padding:3px 8px" onclick="excluirRegistro('seguranca_publica','${r.id}')" title="Excluir">??️</button></td>`:'<td></td>';return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td><td><span class="badge badge-preto">${r.tipo_ocorrencia||'—'}</span></td><td>${r.envolvimento||'—'}</td><td>${r.local||'—'}</td><td>${r.boletim_ocorrencia||'—'}</td><td>${r.encaminhamento||'—'}</td>${btnDel}</tr>`;}).join('');
+  if(!dadosSeg.length)tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>';
   const el=document.getElementById('stats-seg');
   if(el)el.innerHTML=[
     {l:'Total Ocorr.',v:dadosSeg.length,t:'cinza-esc',i:'🚔'},
@@ -2723,8 +2700,8 @@ async function salvarSSM(){
 }
 function renderSSMTabela(){
   const tbody=document.getElementById('tbody-ssm');if(!tbody)return;
-  tbody.innerHTML=dadosSSM.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);const sc=r.status==='realizado'?'badge-verde':r.status==='cancelado'?'badge-vermelho':'badge-amarelo';return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td><td>${r.tipo_notificacao||'—'}</td><td>${r.servico||'—'}</td><td>${r.motivo||'—'}</td><td>${r.encaminhamento||'—'}</td><td>${fmtData(r.data_retorno)}</td><td><span class="badge ${sc}">${r.status||'—'}</span></td></tr>`;}).join('');
-  if(!dadosSSM.length)tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>';
+  tbody.innerHTML=dadosSSM.map(r=>{const pac=pacientes.find(p=>p.id===r.paciente_id);const sc=r.status==='realizado'?'badge-verde':r.status==='cancelado'?'badge-vermelho':'badge-amarelo';const btnDel=isAdmin?`<td><button class="btn btn-danger btn-sm" style="font-size:.6rem;padding:3px 8px" onclick="excluirRegistro('sec_saude_municipal','${r.id}')" title="Excluir">??️</button></td>`:'<td></td>';return `<tr><td>${fmtData(r.data_atendimento)}</td><td style="font-weight:700">${pac?.nome||'—'}</td><td>${r.tipo_notificacao||'—'}</td><td>${r.servico||'—'}</td><td>${r.motivo||'—'}</td><td>${r.encaminhamento||'—'}</td><td>${fmtData(r.data_retorno)}</td><td><span class="badge ${sc}">${r.status||'—'}</span></td>${btnDel}</tr>`;}).join('');
+  if(!dadosSSM.length)tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>';
   const el=document.getElementById('stats-ssm');
   if(el)el.innerHTML=[
     {l:'Total',v:dadosSSM.length,t:'verde',i:'🏥'},
@@ -2745,8 +2722,8 @@ function renderObitosTabela(){
   const filtro=document.getElementById('filtro-obito')?.value||'todos';
   let lista=filtro==='todos'?dadosObitos:dadosObitos.filter(o=>o.categoria_causa===filtro);
   const tbody=document.getElementById('tbody-obitos');if(!tbody)return;
-  tbody.innerHTML=lista.map(o=>`<tr><td style="font-weight:700">${o.nome_falecido||'—'}</td><td class="alerta">${fmtData(o.data_obito)}</td><td>${o.aldeia||'—'}</td><td>${o.sexo==='M'?'👨 Masc':'👩 Fem'}</td><td>${o.idade_obito!==null?o.idade_obito+'a':'—'}</td><td><span class="badge badge-preto">${o.categoria_causa||'—'}</span></td><td>${o.causa_obito||'—'}</td><td>${o.cid10||'—'}</td><td>${o.local_obito||'—'}</td></tr>`).join('');
-  if(!lista.length)tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>';
+  tbody.innerHTML=lista.map(o=>{const btnDel=isAdmin?`<td><button class="btn btn-danger btn-sm" style="font-size:.6rem;padding:3px 8px" onclick="excluirRegistro('obitos','${o.id}')" title="Excluir">??️</button></td>`:'<td></td>';return `<tr><td style="font-weight:700">${o.nome_falecido||'—'}</td><td class="alerta">${fmtData(o.data_obito)}</td><td>${o.aldeia||'—'}</td><td>${o.sexo==='M'?'👨 Masc':'👩 Fem'}</td><td>${o.idade_obito!==null?o.idade_obito+'a':'—'}</td><td><span class="badge badge-preto">${o.categoria_causa||'—'}</span></td><td>${o.causa_obito||'—'}</td><td>${o.cid10||'—'}</td><td>${o.local_obito||'—'}</td>${btnDel}</tr>`;}).join('');
+  if(!lista.length)tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--cinza);padding:14px">Nenhum registro.</td></tr>';
   const el=document.getElementById('stats-obitos');
   if(el)el.innerHTML=[
     {l:'Total Óbitos',v:dadosObitos.length,t:'cinza-esc',i:'⚫'},
@@ -3497,17 +3474,7 @@ async function enviarChat(){
 // ===================== ONLINE/OFFLINE + STATS TEMPO REAL =====================
 function monitorarConexao(){
   const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.style.display=v;};
-  const setTxt=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-  window.addEventListener('online',()=>{
-    setEl('status-online','flex');setEl('status-offline','none');
-    setTxt('status-txt','Online');
-    mostrarNotif('🟢 Conexão restaurada! Sincronizando dados...');
-    setTimeout(sincronizarFilaOffline, 1500);
-  });
-  window.addEventListener('offline',()=>{
-    setEl('status-online','none');setEl('status-offline','flex');
-    mostrarNotif('📡 Sem internet — dados serão salvos localmente');
-  });
+  // Status inicial (eventos online/offline agora gerenciados pelo modulo offline)
   if(!navigator.onLine){setEl('status-online','none');setEl('status-offline','flex');}
 }
 
